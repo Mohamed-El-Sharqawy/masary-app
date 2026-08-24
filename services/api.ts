@@ -1,9 +1,10 @@
 /**
  * API client for the Masary app.
  * All network calls live here: Supabase Edge Function /capture (AI extraction
- * proxy) and (M1) supabase-js sync endpoints. Guests call /capture with a
- * device id header (rate-limited, no account); signed-in users attach their
- * session JWT. Used by: services/mutations.ts, lib/sync.ts.
+ * proxy — text + voice) and (M1) supabase-js sync endpoints. Guests call
+ * /capture with a device id header (rate-limited, no account); signed-in
+ * users attach their session JWT. Used by: services/mutations.ts,
+ * lib/sync.ts, lib/voice/process.ts.
  */
 import Constants from 'expo-constants';
 import * as Crypto from 'expo-crypto';
@@ -45,6 +46,46 @@ export async function captureText(
     headers,
     body: JSON.stringify({ text }),
   });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error ?? `capture_failed_${res.status}`);
+  }
+  return res.json();
+}
+
+/** File name + mime for a recorded take by extension (Groq accepts all). */
+function audioPart(uri: string): { name: string; type: string } {
+  const ext = uri.slice(uri.lastIndexOf('.')).toLowerCase();
+  const types: Record<string, string> = {
+    '.wav': 'audio/wav',
+    '.m4a': 'audio/mp4',
+    '.mp4': 'audio/mp4',
+    '.webm': 'audio/webm',
+  };
+  return { name: `recording${ext}`, type: types[ext] ?? 'audio/mp4' };
+}
+
+/**
+ * Upload a recorded take (16 kHz mono WAV/m4a) to the Edge Function:
+ * Groq STT → transcript → extraction. Multipart 'audio' field per the §4
+ * /capture contract. Guests use the device-id path (the designed guest AI
+ * path — the only cloud call guests make); signed-in users attach their JWT.
+ * @param uri local file uri of the recording
+ * @param authToken Supabase access token when signed in (null for guests)
+ * @returns the /capture JSON envelope (transcript + extraction)
+ */
+export async function captureAudio(
+  uri: string,
+  authToken: string | null,
+): Promise<unknown> {
+  const headers: Record<string, string> = {};
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
+  else headers['x-device-id'] = await getDeviceId();
+
+  const { name, type } = audioPart(uri);
+  const form = new FormData();
+  form.append('audio', { uri, name, type } as unknown as Blob);
+  const res = await fetch(APP_CONFIG.edgeUrl, { method: 'POST', headers, body: form });
   if (!res.ok) {
     const body = (await res.json().catch(() => ({}))) as { error?: string };
     throw new Error(body.error ?? `capture_failed_${res.status}`);

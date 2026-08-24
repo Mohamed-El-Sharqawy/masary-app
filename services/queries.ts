@@ -5,6 +5,16 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { getDb } from '@/lib/db';
+import {
+  dailyTotals,
+  monthlySummary,
+  topMerchants,
+} from '@/lib/aggregates';
+import type {
+  DailyTotal,
+  MonthlySummary,
+  TopMerchant,
+} from '@/lib/aggregates';
 import type { ChatMessage, Transaction } from '@/types';
 
 /** Row → typed Transaction. */
@@ -61,6 +71,48 @@ export function useChatMessages(limit = 200) {
         transactions_json: (r.transactions_json as string | null) ?? null,
         created_at: String(r.created_at),
       }));
+    },
+  });
+}
+
+/** Monthly summary aggregate (dashboard total + donut + FX line). */
+export function useMonthlySummary(year: number, month: number) {
+  return useQuery({
+    queryKey: ['aggregates', 'monthly-summary', year, month],
+    queryFn: (): Promise<MonthlySummary> => monthlySummary(year, month),
+    staleTime: 60_000,
+  });
+}
+
+/** Daily totals aggregate (dashboard bar chart), zero-filled per day. */
+export function useDailyTotals(year: number, month: number) {
+  return useQuery({
+    queryKey: ['aggregates', 'daily-totals', year, month],
+    queryFn: (): Promise<DailyTotal[]> => dailyTotals(year, month),
+    staleTime: 60_000,
+  });
+}
+
+/** Top merchants aggregate (dashboard merchants card). */
+export function useTopMerchants(year: number, month: number, n = 5) {
+  return useQuery({
+    queryKey: ['aggregates', 'top-merchants', year, month, n],
+    queryFn: (): Promise<TopMerchant[]> => topMerchants(year, month, n),
+    staleTime: 60_000,
+  });
+}
+
+/** Last few transactions by spent_at desc (dashboard recent list). */
+export function useRecentTransactions(limit = 8) {
+  return useQuery({
+    queryKey: ['transactions', 'recent', limit],
+    queryFn: async (): Promise<Transaction[]> => {
+      const db = await getDb();
+      const rows = (await db.getAllAsync(
+        'SELECT * FROM transactions ORDER BY spent_at DESC LIMIT ?',
+        [limit],
+      )) as Record<string, unknown>[];
+      return rows.map(rowToTransaction);
     },
   });
 }

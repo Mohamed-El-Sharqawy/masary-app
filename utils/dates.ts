@@ -68,11 +68,6 @@ export function monthKey(iso: string): string {
   return new Date(iso).toISOString().slice(0, 7);
 }
 
-/** Weekday (0=Sunday…6=Saturday) on the Cairo calendar. */
-function cairoWeekday(ref: Date): number {
-  return new Date(ref.getTime() + CAIRO_OFFSET_MS).getUTCDay();
-}
-
 /**
  * Egyptian Arabic relative-date phrase table.
  * The extractor LLM is *instructed* with these; this deterministic resolver

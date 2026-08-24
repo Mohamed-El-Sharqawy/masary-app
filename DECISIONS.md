@@ -18,3 +18,4 @@ SDK 57 needs reanimated ~4.6.0 + worklets ~0.12 (RN 0.86 peer range).
 ## D5 — date boundaries on Cairo calendar via UTC math
 startOf* helpers use fixed +03:00 offset (Cairo has no DST since 2023) instead
 of local setHours — deterministic on any machine (CI included).
+- D6 — milestone branches: each milestone lands on its own branch (m0-foundations, m1-data-core, …), chained on the previous; main stays clean until the captain merges.

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="ar" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masary — UI/UX Plan v1.2</title>
+<!-- Built for lavish-axi review. Design source: captain's explicit direction — "vibrant and saturated",
+     "no gradients or AI slops", UI copy in Modern Standard Arabic, minimal contrast-safe icons. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#3b0764; --muted:#8a7f9b; --line:#f0dfe8; --bg:#fdf7fa; --card:#ffffff;
+    --brand:#C2185B; --brand-soft:#fdeef5;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Cairo',ui-sans-serif,system-ui,'Segoe UI',Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+  .wrap{max-width:1120px;margin:0 auto;padding:32px 20px 90px}
+  header.hero{background:#C2185B;color:#fff;border-radius:18px;padding:38px 32px;margin-bottom:26px}
+  header.hero h1{margin:0 0 6px;font-size:30px;letter-spacing:-.5px}
+  header.hero p{margin:0;opacity:.9}
+  .badges{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+  .badge{font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3)}
+  h2{font-size:21px;margin:40px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  h3{font-size:16px;margin:20px 0 8px}
+  p{margin:8px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+  th{text-align:left;background:#faeef4;padding:9px 10px;border:1px solid var(--line);font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  td{padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+  code{font-family:ui-monospace,Menlo,Consolas,monospace;background:#faeef4;padding:1px 5px;border-radius:5px;font-size:12.5px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.4px;text-transform:uppercase}
+  .pill.rec{background:#fff7e6;color:#b45309;border:1px solid #fde68a}
+  .pill.open{background:#faf5ff;color:#9333ea;border:1px solid #e9d5ff}
+  /* option cards */
+  .opt{border:2px solid var(--line);border-radius:16px;padding:20px;margin:18px 0;background:#fff}
+  .opt h3{margin:0 0 4px;font-size:18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .optgrid{display:grid;grid-template-columns:1fr 300px;gap:18px;margin-top:14px}
+  @media(max-width:800px){.optgrid{grid-template-columns:1fr}}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .sw{width:88px;border-radius:10px;padding:8px 6px;text-align:center;font-size:10.5px;font-weight:700;color:#fff;border:1px solid rgba(0,0,0,.08)}
+  .sw small{display:block;font-weight:400;opacity:.85;font-size:9.5px}
+  /* phone mock */
+  .phone{border-radius:26px;border:3px solid #3b0764;overflow:hidden;box-shadow:0 10px 28px rgba(59,7,100,.16);background:var(--p-bg);color:var(--p-ink);direction:rtl;width:100%}
+  .p-head{padding:14px 14px 10px;display:flex;align-items:center;justify-content:space-between;background:var(--p-head)}
+  .p-head .ttl{font-weight:800;font-size:14px;color:#fff}
+  .p-head .sub{font-size:11px;color:#fff;opacity:.9}
+  .p-body{padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:200px}
+  .bub{max-width:86%;padding:8px 12px;border-radius:14px;font-size:12.5px}
+  .bub.user{align-self:flex-start;background:var(--p-primary);color:#fff;border-bottom-right-radius:4px}
+  .bub.bot{align-self:flex-end;background:var(--p-surface);color:var(--p-ink);border:1px solid var(--p-line);border-bottom-left-radius:4px}
+  .txcard{align-self:stretch;background:var(--p-surface);border:1.5px solid var(--p-primary);border-radius:12px;padding:9px 12px;font-size:12px}
+  .txcard .amt{font-size:18px;font-weight:800;color:var(--p-primary)}
+  .chiprow{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+  .chip{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--p-soft);color:var(--p-primary)}
+  .chip.on{background:var(--p-primary);color:#fff}
+  .p-comp{display:flex;gap:8px;align-items:center;padding:9px 12px;background:var(--p-surface);border-top:1px solid var(--p-line)}
+  .p-comp .fakeinput{flex:1;background:var(--p-bg);border:1.5px solid var(--p-line);border-radius:999px;padding:7px 12px;font-size:11.5px;color:var(--muted)}
+  .roundbtn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  .roundbtn.mic{background:var(--p-accent);color:#fff}
+  .roundbtn.send{background:var(--p-primary);color:#fff}
+  .dashmini{border-radius:12px;padding:10px 12px;background:var(--p-surface);border:1px solid var(--p-line)}
+  .dashmini .big{font-size:20px;font-weight:800;color:var(--p-primary)}
+  .bars{display:flex;gap:4px;align-items:flex-end;height:44px;margin-top:6px}
+  .bars i{flex:1;border-radius:3px 3px 0 0;background:var(--p-primary);opacity:.9}
+  .bars i.hi{background:var(--p-accent)}
+  /* welcome + settings + sheet + dashboard-full */
+  .p-welcome{padding:28px 18px 18px;display:flex;flex-direction:column;gap:9px;min-height:330px}
+  .langtoggle{display:flex;justify-content:flex-end;font-size:10.5px;font-weight:700;color:var(--p-primary)}
+  .logo{font-size:30px;font-weight:800;color:var(--p-primary);text-align:center}
+  .tagline{text-align:center;font-size:12px;color:var(--p-ink);opacity:.8}
+  .btnp{border-radius:12px;padding:11px;text-align:center;font-weight:700;font-size:13px}
+  .btnp.pri{background:var(--p-primary);color:#fff}
+  .btnp.gst{border:1.5px solid var(--p-primary);color:var(--p-primary)}
+  .btnp.ghost{border:1.5px solid var(--p-line);background:var(--p-surface);color:var(--p-ink)}
+  .guestnote{text-align:center;font-size:10px;color:var(--muted)}
+  .divider{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:10.5px}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--p-line)}
+  .oauth{display:flex;gap:8px}
+  .oauth .b{flex:1;border:1.5px solid var(--p-line);border-radius:10px;padding:8px;text-align:center;font-size:11.5px;font-weight:700;background:var(--p-surface)}
+  .periods{display:flex;gap:6px;flex-wrap:wrap}
+  .pd{font-size:10.5px;font-weight:700;padding:4px 11px;border-radius:999px;border:1px solid var(--p-line);background:var(--p-surface)}
+  .pd.on{background:var(--p-primary);color:#fff;border-color:var(--p-primary)}
+  .donutrow{display:flex;gap:12px;align-items:center}
+  .donut{width:76px;height:76px;border-radius:50%;flex-shrink:0;background:conic-gradient(var(--p-primary) 0 38%,var(--p-accent) 38% 60%,var(--p-amber) 60% 80%,var(--p-teal) 80% 100%);position:relative}
+  .donut::after{content:"";position:absolute;inset:19px;border-radius:50%;background:var(--p-surface)}
+  .legend{display:flex;flex-direction:column;gap:4px;font-size:11px}
+  .legend .li{display:flex;align-items:center;gap:6px}
+  .dot{width:9px;height:9px;border-radius:3px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:8px 2px;border-bottom:1px solid var(--p-line);font-size:12px}
+  .row:last-child{border-bottom:none}
+  .row .v{opacity:.6;font-size:10.5px}
+  .cur{font-size:10.5px;opacity:.75}
+  .p-dim{padding:16px 12px 0;background:rgba(40,10,45,.35);min-height:300px;display:flex;flex-direction:column;justify-content:flex-end}
+  .sheet{background:var(--p-surface);border-radius:18px 18px 0 0;padding:13px 14px;border:1px solid var(--p-line);border-bottom:none}
+  .sheet .sh-title{font-weight:800;font-size:13px;margin-bottom:8px}
+  .amtbox{display:flex;align-items:center;gap:8px;border:1.5px solid var(--p-primary);border-radius:10px;padding:8px 12px;background:var(--p-bg)}
+  .amtbox .n{font-size:21px;font-weight:800;color:var(--p-primary)}
+  .amtbox .cur2{font-size:11px;font-weight:700;color:var(--p-ink);opacity:.7}
+  .lbl{font-size:10px;font-weight:700;opacity:.65;margin:8px 0 4px}
+  .f{border:1px solid var(--p-line);border-radius:9px;padding:7px 10px;font-size:11.5px;background:var(--p-bg);color:var(--p-ink)}
+  .sheetbtns{display:flex;gap:8px;margin-top:12px}
+  .sheetbtns .btnp{flex:1;padding:9px;font-size:12px}
+  .btnp.danger{border:1.5px solid #DC2626;color:#DC2626;background:transparent}
+  /* galleries */
+  .screenlabel{font-weight:800;margin:26px 0 4px;font-size:15.5px}
+  .screendesc{font-size:12.5px;color:var(--muted);margin:0 0 10px}
+  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+  @media(max-width:900px){.gallery{grid-template-columns:1fr}
+  .gallery .phone{max-width:340px}}
+  .gal-tag{font-size:11.5px;font-weight:800;color:var(--p-primary);margin:0 0 6px}
+  /* flows */
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;font-size:13px}
+  .flow .step{background:#faeef4;border:1px solid var(--line);border-radius:9px;padding:6px 10px}
+  .flow .step.hl{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .flow .arr{color:var(--muted)}
+  .flowtitle{font-weight:700;margin-top:16px;font-size:14.5px}
+  /* decision forms */
+  .q{background:var(--brand-soft);border:1px solid #f3cfe0;border-radius:14px;padding:16px 18px;margin:16px 0}
+  .q h3{margin:0 0 6px}
+  .q label{display:flex;align-items:flex-start;gap:9px;padding:7px 10px;border-radius:9px;font-size:14.5px;cursor:pointer}
+  .q label:hover{background:#fadce9}
+  .q input[type=radio]{accent-color:var(--brand);width:17px;height:17px;margin-top:3px}
+  .q button{margin-top:10px;font-family:inherit;font-weight:700;font-size:13.5px;color:#fff;background:var(--brand);border:none;border-radius:9px;padding:9px 18px;cursor:pointer}
+  .q small{color:var(--muted)}
+  .note{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;font-size:14px;margin:14px 0}
+  footer{margin-top:48px;color:var(--muted);font-size:12.5px;text-align:center}
+  ul.tight li{margin:4px 0}
+</style>
+</head>
+<body>
+<div class="wrap" dir="ltr">
+
+<header class="hero">
+  <h1>Masary — UI/UX Plan</h1>
+  <p>How the app looks and how you operate it · vibrant, saturated &amp; flat · Arabic (فصيح) UI, RTL · React Native + Expo + NativeWind</p>
+  <div class="badges">
+    <span class="badge">Status: v1.3 — all decisions locked (Flamingo chosen)</span>
+    <span class="badge">Companion to: docs/technical-plan.html (v1.3)</span>
+    <span class="badge">Date: 2026-08-24</span>
+  </div>
+</header>
+
+<div class="note"><b>Final round — decisions locked:</b> design direction <b>C — "Flamingo"</b> (flat coral + magenta on rose cream) · numerals <b>Western 0-9 default</b> with Eastern toggle · theme <b>follow system</b> + in-app toggle · onboarding <b>one 3-screen intro</b> (value · voice demo · privacy) · icons clarified: functional icons (send, microphone) used normally; the <b>logo is an image the captain will provide</b> — plain text "مصاري" as the placeholder until then.</div>
+
+<h2>1 · Design principles</h2>
+<div class="card">
+  <ul class="tight">
+    <li><b>Vibrant &amp; saturated</b> — bold color is the brand; money apps are usually conservative navy/blue, so saturation is differentiation (research: nobody in the category is colorful).</li>
+    <li><b>Flat &amp; confident — no gradients, no AI slop</b> (captain rule): solid saturated color blocks only; no gradient heroes or CTAs, no glassmorphism, no purple-blue AI clichés.</li>
+    <li><b>UI copy in Modern Standard Arabic (فصيح)</b> (captain rule): MSA for readability, translation, and app convention; user <i>input</i> stays welcome in Egyptian dialect, MSA, English, or mixed — understanding all of them is the app's job.</li>
+    <li><b>Icons: functional &amp; contrast-safe</b> (captain rule): normal icon usage for functional actions (send, microphone); no icon-based logo — the logo is an image the captain provides (text "مصاري" placeholder); icons never in a color close to the surface behind them.</li>
+    <li><b>Arabic-first, RTL by default</b> — mirrored layout, Arabic typography primary, English toggle; mixed content must look natural in one conversation.</li>
+    <li><b>Chat is home</b> — the app opens directly into the conversation; logging an expense is one message away, never a form.</li>
+    <li><b>Thumb-first</b> — composer and mic within thumb reach; destructive actions away from the thumb arc.</li>
+    <li><b>Calm data, loud actions</b> — saturated color on primary actions, category chips, and charts; surfaces stay readable so numbers stay trustworthy.</li>
+    <li><b>Fast feels fast</b> — every AI wait has an immediate optimistic state ("جاري الحفظ…"); confirmations use haptics + color, never blocking spinners alone.</li>
+  </ul>
+</div>
+
+<h2>2 · Design directions — pick one</h2>
+
+<!-- OPTION A -->
+<div class="opt" id="opt-a" style="--p-bg:#FFFBEB;--p-ink:#431407;--p-surface:#FFFFFF;--p-line:#F3E4C4;--p-head:#EA580C;--p-primary:#EA580C;--p-accent:#F59E0B;--p-soft:#FFEFD6;--p-amber:#F59E0B;--p-teal:#0D9488">
+  <h3>Option A — "Marigold" <span class="badge" style="background:#FFEFD6;color:#9a3412;border:none">light-first</span></h3>
+  <p>Sun-warm and citrusy. Warm paper canvas, one flat vivid marigold orange as the hero color, amber energy accents, teal for money-positive. The friendliest, most daylight-Egyptian feel — zero gradients anywhere.</p>
+  <div class="swatches">
+    <div class="sw" style="background:#FFFBEB;color:#9a3412">Warm paper<small>#FFFBEB · bg</small></div>
+    <div class="sw" style="background:#EA580C">Marigold<small>#EA580C · primary</small></div>
+    <div class="sw" style="background:#F59E0B">Amber<small>#F59E0B · accent</small></div>
+    <div class="sw" style="background:#0D9488">Teal<small>#0D9488 · success/income</small></div>
+    <div class="sw" style="background:#FFFFFF;color:#9a3412">White<small>#FFFFFF · surface</small></div>
+  </div>
+  <div class="optgrid">
+    <div>
+      <ul class="tight">
+        <li><b>Feel:</b> bright, optimistic, approachable — reads "lifestyle utility", not "bank".</li>
+        <li><b>Charts:</b> orange → amber → coral → teal ramp; teal marks income, deepest orange flags overspend.</li>
+        <li><b>Tradeoffs:</b> orange pushes warmth over "serious money"; destructive red stays clearly separate (#DC2626, destructive actions only).</li>
+        <li><b>Risk:</b> amber on white fails small-text contrast — amber is for fills and graphics, never body text.</li>
+      </ul>
+      <div class="dashmini">
+        <div style="font-size:11px;opacity:.75">مصروفات أغسطس · ج.م</div>
+        <div class="big">12,480</div>
+        <div class="bars"><i style="height:30%"></i><i style="height:55%"></i><i style="height:40%"></i><i style="height:70%"></i><i class="hi" style="height:95%"></i><i style="height:60%"></i><i style="height:45%"></i></div>
+        <div class="chiprow"><span class="chip">أكل 38%</span><span class="chip">مواصلات 22%</span><span class="chip">قهوة ↑</span></div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">مساري</span><span class="sub">ضيف</span></div>
+      <div class="p-body">
+        <div class="bub user">شريت قهوة وميترو بـ 35</div>
+        <div class="bub bot">حسنًا! بكم القهوة وبكم المواصلات؟</div>
+        <div class="bub user">القهوة 20 والميترو 15</div>
+        <div class="txcard">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="amt">20 ج.م</span><span style="font-size:11px;opacity:.7">قهوة · اليوم</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="amt">15 ج.م</span><span style="font-size:11px;opacity:.7">مواصلات · اليوم</span></div>
+          <div class="chiprow"><span class="chip on">تأكيد</span><span class="chip">تعديل</span></div>
+        </div>
+      </div>
+      <div class="p-comp"><div class="fakeinput">اكتب مصروفًا…</div><div class="roundbtn mic">🎙</div><div class="roundbtn send">➤</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- OPTION B -->
+<div class="opt" id="opt-b" style="--p-bg:#FFF7ED;--p-ink:#500724;--p-surface:#FFFFFF;--p-line:#F6DFC8;--p-head:#DB2777;--p-primary:#EC4899;--p-accent:#F97316;--p-soft:#FFEFE0;--p-amber:#F59E0B;--p-teal:#0D9488">
+  <h3>Option B — "Sunset Cairo" <span class="pill rec">RECOMMENDED</span> <span class="badge" style="background:#FFEFE0;color:#9a3412;border:none">light-first</span></h3>
+  <p>Warm cream canvas with one flat, saturated magenta as the hero color and vivid orange support — all the sunset-over-the-Nile warmth, with <b>zero gradients</b> (flat solid blocks only). The most Egyptian of the three, daylight-friendly.</p>
+  <div class="swatches">
+    <div class="sw" style="background:#FFF7ED;color:#9a3412">Warm cream<small>#FFF7ED · bg</small></div>
+    <div class="sw" style="background:#EC4899">Magenta<small>#EC4899 · primary</small></div>
+    <div class="sw" style="background:#F97316">Vivid orange<small>#F97316 · accent</small></div>
+    <div class="sw" style="background:#0D9488">Teal<small>#0D9488 · success/income</small></div>
+    <div class="sw" style="background:#FFFFFF;color:#9a3412">White<small>#FFFFFF · surface</small></div>
+  </div>
+  <div class="optgrid">
+    <div>
+      <ul class="tight">
+        <li><b>Feel:</b> friendly, warm, consumer-approachable — closest to a lifestyle app; great in bright Egyptian daylight.</li>
+        <li><b>Charts:</b> magenta/orange/amber/teal ramp; overspend deepens toward orange-red, teal carries income.</li>
+        <li><b>Tradeoffs:</b> flat-color discipline — one hero color per screen, solid fills only; dark mode is a derived theme, designed second.</li>
+        <li><b>Risk:</b> warm cream needs heavier whitespace under dense charts.</li>
+      </ul>
+      <div class="dashmini">
+        <div style="font-size:11px;opacity:.75">مصروفات أغسطس · ج.م</div>
+        <div class="big">12,480</div>
+        <div class="bars"><i style="height:30%"></i><i style="height:55%"></i><i style="height:40%"></i><i style="height:70%"></i><i class="hi" style="height:95%"></i><i style="height:60%"></i><i style="height:45%"></i></div>
+        <div class="chiprow"><span class="chip">أكل 38%</span><span class="chip">مواصلات 22%</span><span class="chip">قهوة ↑</span></div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">مساري</span><span class="sub">ضيف</span></div>
+      <div class="p-body">
+        <div class="bub user">شريت قهوة وميترو بـ 35</div>
+        <div class="bub bot">حسنًا! بكم القهوة وبكم المواصلات؟</div>
+        <div class="bub user">القهوة 20 والميترو 15</div>
+        <div class="txcard">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="amt">20 ج.م</span><span style="font-size:11px;opacity:.7">قهوة · اليوم</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="amt">15 ج.م</span><span style="font-size:11px;opacity:.7">مواصلات · اليوم</span></div>
+          <div class="chiprow"><span class="chip on">تأكيد</span><span class="chip">تعديل</span></div>
+        </div>
+      </div>
+      <div class="p-comp"><div class="fakeinput">اكتب مصروفًا…</div><div class="roundbtn mic">🎙</div><div class="roundbtn send">➤</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- OPTION C -->
+<div class="opt" id="opt-c" style="--p-bg:#FFF1F3;--p-ink:#4C0519;--p-surface:#FFFFFF;--p-line:#FBD5DC;--p-head:#F43F5E;--p-primary:#F43F5E;--p-accent:#EC4899;--p-soft:#FFE1E7;--p-amber:#F59E0B;--p-teal:#0D9488">
+  <h3>Option C — "Flamingo" <span class="pill" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">CHOSEN</span> <span class="badge" style="background:#FFE4E9;color:#9f1239;border:none">light-first</span></h3>
+  <p>Fresh tropical coral on rose-tinged cream. The most playful of the three — one flat coral carries the brand, magenta and amber support, teal balances. Distinctly youthful, zero gradients.</p>
+  <div class="swatches">
+    <div class="sw" style="background:#FFF1F3;color:#9f1239">Rose cream<small>#FFF1F3 · bg</small></div>
+    <div class="sw" style="background:#F43F5E">Coral<small>#F43F5E · primary</small></div>
+    <div class="sw" style="background:#EC4899">Magenta<small>#EC4899 · accent</small></div>
+    <div class="sw" style="background:#F59E0B">Amber<small>#F59E0B · charts</small></div>
+    <div class="sw" style="background:#0D9488">Teal<small>#0D9488 · success/income</small></div>
+  </div>
+  <div class="optgrid">
+    <div>
+      <ul class="tight">
+        <li><b>Feel:</b> youngest and most energetic — strong fit for a chat-first product that shouldn't feel like banking.</li>
+        <li><b>Charts:</b> coral → magenta → amber → teal ramp; overspend months deepen toward red-coral.</li>
+        <li><b>Tradeoffs:</b> coral sits closest to red — destructive/delete uses unmistakable #DC2626 with a label, never shade alone.</li>
+        <li><b>Risk:</b> pink lean can skew "social app"; teal data accents keep it grounded as a money tool.</li>
+      </ul>
+      <div class="dashmini">
+        <div style="font-size:11px;opacity:.75">مصروفات أغسطس · ج.م</div>
+        <div class="big">12,480</div>
+        <div class="bars"><i style="height:30%"></i><i style="height:55%"></i><i style="height:40%"></i><i style="height:70%"></i><i class="hi" style="height:95%"></i><i style="height:60%"></i><i style="height:45%"></i></div>
+        <div class="chiprow"><span class="chip">أكل 38%</span><span class="chip">مواصلات 22%</span><span class="chip">قهوة ↑</span></div>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">مساري</span><span class="sub">ضيف</span></div>
+      <div class="p-body">
+        <div class="bub user">شريت قهوة وميترو بـ 35</div>
+        <div class="bub bot">حسنًا! بكم القهوة وبكم المواصلات؟</div>
+        <div class="bub user">القهوة 20 والميترو 15</div>
+        <div class="txcard">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span class="amt">20 ج.م</span><span style="font-size:11px;opacity:.7">قهوة · اليوم</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><span class="amt">15 ج.م</span><span style="font-size:11px;opacity:.7">مواصلات · اليوم</span></div>
+          <div class="chiprow"><span class="chip on">تأكيد</span><span class="chip">تعديل</span></div>
+        </div>
+      </div>
+      <div class="p-comp"><div class="fakeinput">اكتب مصروفًا…</div><div class="roundbtn mic">🎙</div><div class="roundbtn send">➤</div></div>
+    </div>
+  </div>
+</div>
+
+<h2>2½ · Every screen in every direction — to help you choose</h2>
+
+<div class="screenlabel">شاشة الترحيب وتسجيل الدخول · Welcome / Auth</div>
+<p class="screendesc">First thing every user sees. Sign-up from day one + guest path (local-only). Flat hero color, MSA copy, text-first (no decorative icons).</p>
+<div class="gallery">
+  <div style="--p-bg:#FFFBEB;--p-ink:#431407;--p-surface:#FFFFFF;--p-line:#F3E4C4;--p-head:#EA580C;--p-primary:#EA580C;--p-accent:#F59E0B;--p-soft:#FFEFD6">
+    <div class="gal-tag">A — Marigold</div>
+    <div class="phone"><div class="p-welcome">
+      <div class="langtoggle">English | عربي</div>
+      <div class="logo">مساري</div>
+      <div class="tagline">سجّل مصروفاتك بالحديث أو الكتابة، ودع مساري ينظّمها لك</div>
+      <div class="btnp pri">إنشاء حساب</div>
+      <div class="btnp gst">الدخول كضيف</div>
+      <div class="guestnote">بياناتك محفوظة على جهازك فقط</div>
+      <div class="divider">أو المتابعة عبر</div>
+      <div class="oauth"><div class="b">Google</div><div class="b">Apple</div></div>
+    </div></div>
+  </div>
+  <div style="--p-bg:#FFF7ED;--p-ink:#500724;--p-surface:#FFFFFF;--p-line:#F6DFC8;--p-head:#DB2777;--p-primary:#EC4899;--p-accent:#F97316;--p-soft:#FFEFE0">
+    <div class="gal-tag">B — Sunset Cairo</div>
+    <div class="phone"><div class="p-welcome">
+      <div class="langtoggle">English | عربي</div>
+      <div class="logo">مساري</div>
+      <div class="tagline">سجّل مصروفاتك بالحديث أو الكتابة، ودع مساري ينظّمها لك</div>
+      <div class="btnp pri">إنشاء حساب</div>
+      <div class="btnp gst">الدخول كضيف</div>
+      <div class="guestnote">بياناتك محفوظة على جهازك فقط</div>
+      <div class="divider">أو المتابعة عبر</div>
+      <div class="oauth"><div class="b">Google</div><div class="b">Apple</div></div>
+    </div></div>
+  </div>
+  <div style="--p-bg:#FFF1F3;--p-ink:#4C0519;--p-surface:#FFFFFF;--p-line:#FBD5DC;--p-head:#F43F5E;--p-primary:#F43F5E;--p-accent:#EC4899;--p-soft:#FFE1E7">
+    <div class="gal-tag">C — Flamingo</div>
+    <div class="phone"><div class="p-welcome">
+      <div class="langtoggle">English | عربي</div>
+      <div class="logo">مساري</div>
+      <div class="tagline">سجّل مصروفاتك بالحديث أو الكتابة، ودع مساري ينظّمها لك</div>
+      <div class="btnp pri">إنشاء حساب</div>
+      <div class="btnp gst">الدخول كضيف</div>
+      <div class="guestnote">بياناتك محفوظة على جهازك فقط</div>
+      <div class="divider">أو المتابعة عبر</div>
+      <div class="oauth"><div class="b">Google</div><div class="b">Apple</div></div>
+    </div></div>
+  </div>
+</div>
+
+<div class="screenlabel">لوحة التحكم · Dashboard</div>
+<p class="screendesc">Period toggle, big total, multi-currency line, category donut + legend, daily bars, recent transactions. Flat segmented donut (hard color stops — chart segments, not decorative gradients).</p>
+<div class="gallery">
+  <div style="--p-bg:#FFFBEB;--p-ink:#431407;--p-surface:#FFFFFF;--p-line:#F3E4C4;--p-head:#EA580C;--p-primary:#EA580C;--p-accent:#F59E0B;--p-soft:#FFEFD6;--p-amber:#F59E0B;--p-teal:#0D9488">
+    <div class="gal-tag">A — Marigold</div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">لوحة التحكم</span><span class="sub">متزامن ✓</span></div>
+      <div class="p-body">
+        <div class="periods"><span class="pd on">اليوم</span><span class="pd">الأسبوع</span><span class="pd">الشهر</span><span class="pd">الكل</span></div>
+        <div class="dashmini">
+          <div style="font-size:11px;opacity:.75">إجمالي أغسطس</div>
+          <div class="big">12,480 ج.م</div>
+          <div class="cur">USD 12.40 ≈ 620 ج.م · EUR 8.10 ≈ 470 ج.م</div>
+        </div>
+        <div class="dashmini">
+          <div class="donutrow">
+            <div class="donut"></div>
+            <div class="legend">
+              <div class="li"><span class="dot" style="background:var(--p-primary)"></span> أكل — 38%</div>
+              <div class="li"><span class="dot" style="background:var(--p-accent)"></span> مواصلات — 22%</div>
+              <div class="li"><span class="dot" style="background:var(--p-amber)"></span> قهوة — 18%</div>
+              <div class="li"><span class="dot" style="background:var(--p-teal)"></span> أخرى — 22%</div>
+            </div>
+          </div>
+          <div class="bars"><i style="height:30%"></i><i style="height:55%"></i><i style="height:40%"></i><i style="height:70%"></i><i class="hi" style="height:95%"></i><i style="height:60%"></i><i style="height:45%"></i></div>
+        </div>
+        <div class="dashmini" style="padding:6px 12px">
+          <div class="row"><span>قهوة — اليوم</span><span class="v">20 ج.م</span></div>
+          <div class="row"><span>مواصلات — اليوم</span><span class="v">15 ج.م</span></div>
+          <div class="row"><span>بقالة — أمس</span><span class="v">340 ج.م</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="--p-bg:#FFF7ED;--p-ink:#500724;--p-surface:#FFFFFF;--p-line:#F6DFC8;--p-head:#DB2777;--p-primary:#EC4899;--p-accent:#F97316;--p-soft:#FFEFE0;--p-amber:#F59E0B;--p-teal:#0D9488">
+    <div class="gal-tag">B — Sunset Cairo</div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">لوحة التحكم</span><span class="sub">متزامن ✓</span></div>
+      <div class="p-body">
+        <div class="periods"><span class="pd on">اليوم</span><span class="pd">الأسبوع</span><span class="pd">الشهر</span><span class="pd">الكل</span></div>
+        <div class="dashmini">
+          <div style="font-size:11px;opacity:.75">إجمالي أغسطس</div>
+          <div class="big">12,480 ج.م</div>
+          <div class="cur">USD 12.40 ≈ 620 ج.م · EUR 8.10 ≈ 470 ج.م</div>
+        </div>
+        <div class="dashmini">
+          <div class="donutrow">
+            <div class="donut"></div>
+            <div class="legend">
+              <div class="li"><span class="dot" style="background:var(--p-primary)"></span> أكل — 38%</div>
+              <div class="li"><span class="dot" style="background:var(--p-accent)"></span> مواصلات — 22%</div>
+              <div class="li"><span class="dot" style="background:var(--p-amber)"></span> قهوة — 18%</div>
+              <div class="li"><span class="dot" style="background:var(--p-teal)"></span> أخرى — 22%</div>
+            </div>
+          </div>
+          <div class="bars"><i style="height:30%"></i><i style="height:55%"></i><i style="height:40%"></i><i style="height:70%"></i><i class="hi" style="height:95%"></i><i style="height:60%"></i><i style="height:45%"></i></div>
+        </div>
+        <div class="dashmini" style="padding:6px 12px">
+          <div class="row"><span>قهوة — اليوم</span><span class="v">20 ج.م</span></div>
+          <div class="row"><span>مواصلات — اليوم</span><span class="v">15 ج.م</span></div>
+          <div class="row"><span>بقالة — أمس</span><span class="v">340 ج.م</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="--p-bg:#FFF1F3;--p-ink:#4C0519;--p-surface:#FFFFFF;--p-line:#FBD5DC;--p-head:#F43F5E;--p-primary:#F43F5E;--p-accent:#EC4899;--p-soft:#FFE1E7;--p-amber:#F59E0B;--p-teal:#0D9488">
+    <div class="gal-tag">C — Flamingo</div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">لوحة التحكم</span><span class="sub">متزامن ✓</span></div>
+      <div class="p-body">
+        <div class="periods"><span class="pd on">اليوم</span><span class="pd">الأسبوع</span><span class="pd">الشهر</span><span class="pd">الكل</span></div>
+        <div class="dashmini">
+          <div style="font-size:11px;opacity:.75">إجمالي أغسطس</div>
+          <div class="big">12,480 ج.م</div>
+          <div class="cur">USD 12.40 ≈ 620 ج.م · EUR 8.10 ≈ 470 ج.م</div>
+        </div>
+        <div class="dashmini">
+          <div class="donutrow">
+            <div class="donut"></div>
+            <div class="legend">
+              <div class="li"><span class="dot" style="background:var(--p-primary)"></span> أكل — 38%</div>
+              <div class="li"><span class="dot" style="background:var(--p-accent)"></span> مواصلات — 22%</div>
+              <div class="li"><span class="dot" style="background:var(--p-amber)"></span> قهوة — 18%</div>
+              <div class="li"><span class="dot" style="background:var(--p-teal)"></span> أخرى — 22%</div>
+            </div>
+          </div>
+          <div class="bars"><i style="height:30%"></i><i style="height:55%"></i><i style="height:40%"></i><i style="height:70%"></i><i class="hi" style="height:95%"></i><i style="height:60%"></i><i style="height:45%"></i></div>
+        </div>
+        <div class="dashmini" style="padding:6px 12px">
+          <div class="row"><span>قهوة — اليوم</span><span class="v">20 ج.م</span></div>
+          <div class="row"><span>مواصلات — اليوم</span><span class="v">15 ج.م</span></div>
+          <div class="row"><span>بقالة — أمس</span><span class="v">340 ج.م</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="screenlabel">تعديل المصروف · Transaction edit sheet</div>
+<p class="screendesc">Bottom sheet over a dimmed chat. Decimal amount, category chips, quick dates (اليوم · أمس · قبل يومين), merchant/person/notes, destructive action clearly separated in red with a label.</p>
+<div class="gallery">
+  <div style="--p-bg:#FFFBEB;--p-ink:#431407;--p-surface:#FFFFFF;--p-line:#F3E4C4;--p-head:#EA580C;--p-primary:#EA580C;--p-accent:#F59E0B;--p-soft:#FFEFD6">
+    <div class="gal-tag">A — Marigold</div>
+    <div class="phone"><div class="p-dim"><div class="sheet">
+      <div class="sh-title">تعديل المصروف</div>
+      <div class="amtbox"><span class="n">20.00</span><span class="cur2">ج.م</span></div>
+      <div class="lbl">الفئة</div>
+      <div class="chiprow"><span class="chip on">قهوة</span><span class="chip">مواصلات</span><span class="chip">أكل</span><span class="chip">أخرى</span></div>
+      <div class="lbl">التاريخ</div>
+      <div class="chiprow"><span class="chip on">اليوم</span><span class="chip">أمس</span><span class="chip">قبل يومين</span></div>
+      <div class="lbl">المتجر / الشخص</div>
+      <div class="f">قهوة النور</div>
+      <div class="sheetbtns"><div class="btnp pri">حفظ</div><div class="btnp danger">حذف</div></div>
+    </div></div></div>
+  </div>
+  <div style="--p-bg:#FFF7ED;--p-ink:#500724;--p-surface:#FFFFFF;--p-line:#F6DFC8;--p-head:#DB2777;--p-primary:#EC4899;--p-accent:#F97316;--p-soft:#FFEFE0">
+    <div class="gal-tag">B — Sunset Cairo</div>
+    <div class="phone"><div class="p-dim"><div class="sheet">
+      <div class="sh-title">تعديل المصروف</div>
+      <div class="amtbox"><span class="n">20.00</span><span class="cur2">ج.م</span></div>
+      <div class="lbl">الفئة</div>
+      <div class="chiprow"><span class="chip on">قهوة</span><span class="chip">مواصلات</span><span class="chip">أكل</span><span class="chip">أخرى</span></div>
+      <div class="lbl">التاريخ</div>
+      <div class="chiprow"><span class="chip on">اليوم</span><span class="chip">أمس</span><span class="chip">قبل يومين</span></div>
+      <div class="lbl">المتجر / الشخص</div>
+      <div class="f">قهوة النور</div>
+      <div class="sheetbtns"><div class="btnp pri">حفظ</div><div class="btnp danger">حذف</div></div>
+    </div></div></div>
+  </div>
+  <div style="--p-bg:#FFF1F3;--p-ink:#4C0519;--p-surface:#FFFFFF;--p-line:#FBD5DC;--p-head:#F43F5E;--p-primary:#F43F5E;--p-accent:#EC4899;--p-soft:#FFE1E7">
+    <div class="gal-tag">C — Flamingo</div>
+    <div class="phone"><div class="p-dim"><div class="sheet">
+      <div class="sh-title">تعديل المصروف</div>
+      <div class="amtbox"><span class="n">20.00</span><span class="cur2">ج.م</span></div>
+      <div class="lbl">الفئة</div>
+      <div class="chiprow"><span class="chip on">قهوة</span><span class="chip">مواصلات</span><span class="chip">أكل</span><span class="chip">أخرى</span></div>
+      <div class="lbl">التاريخ</div>
+      <div class="chiprow"><span class="chip on">اليوم</span><span class="chip">أمس</span><span class="chip">قبل يومين</span></div>
+      <div class="lbl">المتجر / الشخص</div>
+      <div class="f">قهوة النور</div>
+      <div class="sheetbtns"><div class="btnp pri">حفظ</div><div class="btnp danger">حذف</div></div>
+    </div></div></div>
+  </div>
+</div>
+
+<div class="screenlabel">الإعدادات · Settings</div>
+<p class="screendesc">Account (guest sees the upgrade card), language, numerals, currency, categories, backup &amp; import. Rows are label-first — values muted, no decorative icons.</p>
+<div class="gallery">
+  <div style="--p-bg:#FFFBEB;--p-ink:#431407;--p-surface:#FFFFFF;--p-line:#F3E4C4;--p-head:#EA580C;--p-primary:#EA580C;--p-accent:#F59E0B;--p-soft:#FFEFD6">
+    <div class="gal-tag">A — Marigold</div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">الإعدادات</span></div>
+      <div class="p-body">
+        <div class="dashmini">
+          <div class="row"><span>الحساب</span><span class="v">ضيف</span></div>
+          <div class="btnp pri" style="margin-top:8px;font-size:12px;padding:9px">أنشئ حسابًا واحفظ بياناتك</div>
+        </div>
+        <div class="dashmini" style="padding:6px 12px">
+          <div class="row"><span>اللغة</span><span class="v">العربية</span></div>
+          <div class="row"><span>الأرقام</span><span class="v">0-9</span></div>
+          <div class="row"><span>العملة الافتراضية</span><span class="v">ج.م EGP</span></div>
+          <div class="row"><span>الفئات</span><span class="v">15</span></div>
+          <div class="row"><span>النسخ الاحتياطي والاستيراد</span><span class="v">›</span></div>
+          <div class="row"><span>أذونات الميكروفون</span><span class="v">مفعّلة</span></div>
+          <div class="row"><span>حول مساري</span><span class="v">›</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="--p-bg:#FFF7ED;--p-ink:#500724;--p-surface:#FFFFFF;--p-line:#F6DFC8;--p-head:#DB2777;--p-primary:#EC4899;--p-accent:#F97316;--p-soft:#FFEFE0">
+    <div class="gal-tag">B — Sunset Cairo</div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">الإعدادات</span></div>
+      <div class="p-body">
+        <div class="dashmini">
+          <div class="row"><span>الحساب</span><span class="v">ضيف</span></div>
+          <div class="btnp pri" style="margin-top:8px;font-size:12px;padding:9px">أنشئ حسابًا واحفظ بياناتك</div>
+        </div>
+        <div class="dashmini" style="padding:6px 12px">
+          <div class="row"><span>اللغة</span><span class="v">العربية</span></div>
+          <div class="row"><span>الأرقام</span><span class="v">0-9</span></div>
+          <div class="row"><span>العملة الافتراضية</span><span class="v">ج.م EGP</span></div>
+          <div class="row"><span>الفئات</span><span class="v">15</span></div>
+          <div class="row"><span>النسخ الاحتياطي والاستيراد</span><span class="v">›</span></div>
+          <div class="row"><span>أذونات الميكروفون</span><span class="v">مفعّلة</span></div>
+          <div class="row"><span>حول مساري</span><span class="v">›</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="--p-bg:#FFF1F3;--p-ink:#4C0519;--p-surface:#FFFFFF;--p-line:#FBD5DC;--p-head:#F43F5E;--p-primary:#F43F5E;--p-accent:#EC4899;--p-soft:#FFE1E7">
+    <div class="gal-tag">C — Flamingo</div>
+    <div class="phone">
+      <div class="p-head"><span class="ttl">الإعدادات</span></div>
+      <div class="p-body">
+        <div class="dashmini">
+          <div class="row"><span>الحساب</span><span class="v">ضيف</span></div>
+          <div class="btnp pri" style="margin-top:8px;font-size:12px;padding:9px">أنشئ حسابًا واحفظ بياناتك</div>
+        </div>
+        <div class="dashmini" style="padding:6px 12px">
+          <div class="row"><span>اللغة</span><span class="v">العربية</span></div>
+          <div class="row"><span>الأرقام</span><span class="v">0-9</span></div>
+          <div class="row"><span>العملة الافتراضية</span><span class="v">ج.م EGP</span></div>
+          <div class="row"><span>الفئات</span><span class="v">15</span></div>
+          <div class="row"><span>النسخ الاحتياطي والاستيراد</span><span class="v">›</span></div>
+          <div class="row"><span>أذونات الميكروفون</span><span class="v">مفعّلة</span></div>
+          <div class="row"><span>حول مساري</span><span class="v">›</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2>3 · Typography (Arabic-first)</h2>
+<div class="card">
+  <table>
+    <tr><th>Font</th><th>Character</th><th>Sample</th><th>Notes</th></tr>
+    <tr><td><b>Cairo</b> <span class="pill" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0">DECIDED</span></td><td>Geometric, friendly, bilingual by design</td><td style="font-family:'Cairo';font-size:19px;font-weight:800">مساري — صرفت ٣٥ جنيه أمس</td><td>Locked by the captain (round 2): single family covers Arabic + Latin; strong weights 400–800.</td></tr>
+    <tr><td><b>Tajawal</b></td><td>Light, clean, modern</td><td style="font-family:'Tajawal';font-size:19px;font-weight:700">مساري — صرفت ٣٥ جنيه أمس</td><td>Great body readability; slightly less punch for numbers.</td></tr>
+    <tr><td><b>IBM Plex Sans Arabic</b></td><td>Professional, engineered</td><td style="font-family:'IBM Plex Sans Arabic';font-size:19px;font-weight:700">مساري — صرفت ٣٥ جنيه أمس</td><td>Corporate-lean; pairs with Plex ecosystem.</td></tr>
+    <tr><td><b>Rubik</b></td><td>Rounded, playful</td><td style="font-family:'Rubik';font-size:19px;font-weight:700">مساري — صرفت ٣٥ جنيه أمس</td><td>Softest option; fits warm directions.</td></tr>
+  </table>
+  <p><b>Numerals:</b> app displays Western digits (0-9) by default — standard for money in Egyptian apps — with an Eastern Arabic (٠-٩) toggle in Settings. Input understands both regardless (extraction normalizes).</p>
+</div>
+
+<h2>4 · App map</h2>
+<div class="card">
+<pre>شاشة الترحيب ─┬─ إنشاء حساب (البريد الإلكتروني · Google · Apple) ──► المحادثة
+               └─ الدخول كضيف (بيانات محلية فقط) ─────────────────► المحادثة
+
+التبويبات (سفلية، بترتيب RTL):
+  المحادثة (افتراضي — يفتح مع لوحة المفاتيح جاهزة)
+  لوحة التحكم
+  الإعدادات
+
+نوافذ منبثقة: تعديل المصروف · اختيار الفئة · النسخ الاحتياطي والاستيراد · ترقية الحساب
+رابط عميق: masary://capture ─► المحادثة مع تركيز الإدخال (تسجيل سريع)</pre>
+</div>
+
+<h2>5 · UX flows</h2>
+<div class="card">
+  <div class="flowtitle">١ · First launch → in the app (target: under 20 seconds)</div>
+  <div class="flow"><span class="step">شاشة الترحيب (سطور تعريفية قصيرة)</span><span class="arr">→</span><span class="step hl">إنشاء حساب</span><span class="arr">→</span><span class="step">البريد / OAuth</span><span class="arr">→</span><span class="step">محادثة فارغة مع أمثلة جاهزة</span></div>
+  <div class="flow"><span class="step">أو</span><span class="arr">→</span><span class="step hl">الدخول كضيف</span><span class="arr">→</span><span class="step">مباشرة إلى المحادثة (بلا نماذج)</span><span class="arr">→</span><span class="step">شريط: "بياناتك محفوظة على جهازك فقط"</span></div>
+
+  <div class="flowtitle">٢ · Log an expense by text (the core loop)</div>
+  <div class="flow"><span class="step">اكتب "شريت قهوة وميترو بـ 35"</span><span class="arr">→</span><span class="step">إرسال</span><span class="arr">→</span><span class="step hl">"جاري الحفظ…" (فوري)</span><span class="arr">→</span><span class="step">بطاقات التأكيد</span><span class="arr">→</span><span class="step">تأكيد (اهتزاز خفيف) — تم التخزين</span></div>
+
+  <div class="flowtitle">٢ب · Smart multi-item — ask, never guess the split</div>
+  <div class="flow"><span class="step">"شريت قهوة وميترو بـ 35" (مجموع فقط)</span><span class="arr">→</span><span class="step hl">المساعد: "بكم القهوة؟ وبكم المواصلات؟"</span><span class="arr">→</span><span class="step">"القهوة 20 والميترو 15"</span><span class="arr">→</span><span class="step">بطاقتا تأكيد</span></div>
+
+  <div class="flowtitle">٣ · Log by voice (optional path)</div>
+  <div class="flow"><span class="step">اضغط زر التسجيل</span><span class="arr">→</span><span class="step">موجة صوتية حية</span><span class="arr">→</span><span class="step">اضغط للإيقاف (حد 30 ثانية)</span><span class="arr">→</span><span class="step">فقاعة النص المتحوَّل</span><span class="arr">→</span><span class="step">بطاقات التأكيد</span></div>
+
+  <div class="flowtitle">٤ · Ambiguity → clarification (never a silent guess)</div>
+  <div class="flow"><span class="step">"شريت قهوة"</span><span class="arr">→</span><span class="step hl">المساعد: "كم المبلغ؟"</span><span class="arr">→</span><span class="step">"20"</span><span class="arr">→</span><span class="step">بطاقة تأكيد</span></div>
+
+  <div class="flowtitle">٥ · Ask about spending</div>
+  <div class="flow"><span class="step">"كام صرفت على القهوة الشهر ده؟" (لهجتك المحلية مرحّب بها)</span><span class="arr">→</span><span class="step hl">بطاقة إجابة: "أنفقت 460 ج.م على 23 قهوة هذا الشهر" + رسم مصغر</span><span class="arr">→</span><span class="step">اضغط ← قائمة الحركات المفلترة</span></div>
+
+  <div class="flowtitle">٦ · Guest → account upgrade (data never lost)</div>
+  <div class="flow"><span class="step">الإعدادات: "أنشئ حسابًا واحفظ بياناتك"</span><span class="arr">→</span><span class="step">تسجيل</span><span class="arr">→</span><span class="step hl">دمج لمرة واحدة: رفع السجل المحلي إلى السحابة</span><span class="arr">→</span><span class="step">"تم! تتم مزامنة بياناتك الآن ✓"</span></div>
+
+  <div class="flowtitle">٧ · Same account, second device</div>
+  <div class="flow"><span class="step">تسجيل الدخول على هاتف جديد</span><span class="arr">→</span><span class="step hl">مزامنة كاملة (سحب السجل)</span><span class="arr">→</span><span class="step">نفس البيانات ونفس اللوحة</span></div>
+
+  <div class="flowtitle">٨ · Offline</div>
+  <div class="flow"><span class="step">لا يوجد اتصال</span><span class="arr">→</span><span class="step">شريط: "سيتم الحفظ دون اتصال — وتتم المزامنة عند عودة الإنترنت"</span><span class="arr">→</span><span class="step">النصوص والمقاطع الصوتية في قائمة انتظار</span><span class="arr">→</span><span class="step">عودة الشبكة ← مزامنة تلقائية</span></div>
+
+  <div class="flowtitle">٩ · Backup &amp; import (works for guests too)</div>
+  <div class="flow"><span class="step">الإعدادات ← النسخ الاحتياطي</span><span class="arr">→</span><span class="step">تصدير masary-backup-2026-08-24.json</span><span class="arr">→</span><span class="step">على أي هاتف: استيراد ← استعادة كاملة</span></div>
+</div>
+
+<h2>6 · Screen specs</h2>
+<div class="card">
+  <table>
+    <tr><th>Screen</th><th>Contents</th><th>States</th></tr>
+    <tr><td><b>Welcome / Auth</b></td><td>Flat hero color, app name مساري, one-line MSA pitch "سجّل مصروفاتك بالحديث أو الكتابة", primary CTA إنشاء حساب, secondary الدخول كضيف (+ "بياناتك محفوظة على جهازك فقط"), OAuth row (Google · Apple), language toggle</td><td>loading · auth error inline · offline (guest still works)</td></tr>
+    <tr><td><b>Chat (home)</b></td><td>See mockups §2: header (name + account status ضيف/حساب), message list (user bubbles / assistant confirm cards / answer cards), composer (text + record + send), example chips on empty state ("شريت قهوة بـ 20", "دفعت 50 لأحمد امبارح", "كام صرفت الشهر ده؟")</td><td>empty · saving (optimistic) · needs-clarification · offline banner · sync-pending badge · error-with-retry (keeps the message)</td></tr>
+    <tr><td><b>Dashboard</b></td><td>Period toggle (اليوم · الأسبوع · الشهر · الكل), total big number (EGP-normalized + per-currency rows), category donut + ranked legend with Δ vs previous period, daily bars, recent transactions (tap → edit sheet, swipe → delete)</td><td>empty (friendly CTA → chat) · offline (from SQLite) · loading skeletons</td></tr>
+    <tr><td><b>Transaction edit sheet</b></td><td>Bottom sheet: amount (decimal keypad, both numeral systems accepted), category chips, date quick-chips (اليوم · أمس · قبل يومين) + full picker, merchant/person fields, notes, raw transcript reference, save / delete (red, labeled)</td><td>validation errors inline · delete confirm</td></tr>
+    <tr><td><b>Settings</b></td><td>Account (guest upgrade card "أنشئ حسابًا واحفظ بياناتك", sign-out), اللغة (العربية default · English), الأرقام (0-9 · ٠-٩), default currency + FX source, category manager, النسخ الاحتياطي والاستيراد, about/privacy</td><td>guest vs signed-in variants · merge-in-progress</td></tr>
+  </table>
+</div>
+
+<h2>7 · Micro-interactions &amp; feedback</h2>
+<div class="card">
+  <ul class="tight">
+    <li><b>Entrance scale (captain spec):</b> any container entering with text + an icon scales <b>0.9 → 1</b> (0.95 for large cards) with a fade — confirm cards, chip rows, answer cards.</li>
+    <li><b>Confirm haptic</b> (light) when a transaction stores; success color pulse on the card border.</li>
+    <li><b>Card entrance:</b> confirm cards slide up + fade (180 ms); multi-item stacks stagger 60 ms.</li>
+    <li><b>Waveform</b> animates live while recording; on stop it morphs into the "جاري الحفظ…" bubble.</li>
+    <li><b>Optimistic states:</b> user bubble appears instantly; assistant placeholder shimmer never blocks input.</li>
+    <li><b>Sync badge:</b> tiny indicator on chat header while the queue drains; turns ✓ with a subtle pop.</li>
+    <li><b>Overspend cue:</b> dashboard month bar in accent color when &gt; budget (post-M5 budgets).</li>
+    <li><b>RTL motion:</b> all slide/fade directions mirror in Arabic; nothing LTR-locked.</li>
+  </ul>
+</div>
+
+<h2>8 · Component inventory (maps to repo directories)</h2>
+<div class="card">
+  <table>
+    <tr><th>Directory</th><th>Components</th></tr>
+    <tr><td><code>components/chat/</code></td><td>MessageBubble · RecordButton · ConfirmCard · AnswerCard · Composer · ExampleChips · OfflineBanner · SyncBadge</td></tr>
+    <tr><td><code>components/dashboard/</code></td><td>PeriodToggle · SpendTotal · CategoryDonut · DailyBars · TransactionList · DeltaBadge</td></tr>
+    <tr><td><code>components/ui/</code></td><td>Button · Chip · Sheet · Card · Field · Keypad · Spinner · EmptyState</td></tr>
+    <tr><td><code>components/settings/</code></td><td>AccountCard · LanguagePicker · CategoryManager · BackupImport</td></tr>
+  </table>
+  <p style="font-size:13px;color:var(--muted)">Every component file carries a header comment: purpose + every screen using it (per the organization rules in technical-plan §6). Icons: text labels first; where an icon is used it ships with a label and a contrast-checked color.</p>
+</div>
+
+<h2>9 · Decisions — all locked</h2>
+
+<div class="q">
+  <h3>١ · Design direction — <span style="color:#15803d">DECIDED: C — Flamingo</span></h3>
+  <small>Chosen by the captain in the final round. Flat coral #F43F5E + magenta #EC4899 on rose cream #FFF1F3, teal #0D9488 for income/success, amber for charts; destructive actions always #DC2626 with a label. These become the NativeWind design tokens in M0.</small>
+</div>
+
+<form class="q" data-lavish-question="typography" onsubmit="event.preventDefault();">
+  <h3>٢ · Typography — <span style="color:#15803d">DECIDED: Cairo</span></h3>
+  <small>Locked by the captain in round 2 ("great font"). Annotate this box if you ever want to revisit.</small>
+</form>
+
+<div class="q">
+  <h3>٣ · Default numerals — <span style="color:#15803d">DECIDED: Western 0-9</span></h3>
+  <small>Eastern ٠-٩ toggle in Settings; input always understands both.</small>
+</div>
+
+<div class="q">
+  <h3>٤ · Default theme — <span style="color:#15803d">DECIDED: Follow system</span></h3>
+  <small>With in-app toggle; the derived warm-dark theme is designed second.</small>
+</div>
+
+<div class="q">
+  <h3>٥ · Onboarding — <span style="color:#15803d">DECIDED: One 3-screen intro</span></h3>
+  <small>Value · voice demo · privacy — then straight into the chat with example chips.</small>
+</div>
+
+<footer>Masary UI/UX plan v1.3 FINAL · direction: Flamingo (flat coral/magenta/rose cream) · Cairo · Western numerals default · follow-system theme · 3-screen onboarding · logo = captain-provided image (text placeholder) · annotate docs in chat any time to reopen any decision.</footer>
+</div>
+</body>
+</html>

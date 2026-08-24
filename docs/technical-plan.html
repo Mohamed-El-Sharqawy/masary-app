@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Masary — Technical Plan v1</title>
+<!-- Built for lavish-axi review: annotate any element; feedback returns to the agent. -->
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --bg:#f8fafc; --card:#ffffff;
+    --brand:#0e7490; --brand-soft:#ecfeff; --ok:#15803d; --ok-soft:#f0fdf4;
+    --warn:#b45309; --warn-soft:#fffbeb; --open:#9333ea; --open-soft:#faf5ff;
+    --code:#0b1220; --code-ink:#dbeafe;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);line-height:1.55}
+  .wrap{max-width:980px;margin:0 auto;padding:32px 20px 80px}
+  header.hero{background:linear-gradient(135deg,#0f172a,#0e7490);color:#fff;border-radius:16px;padding:36px 32px;margin-bottom:28px}
+  header.hero h1{margin:0 0 6px;font-size:30px;letter-spacing:-.5px}
+  header.hero p{margin:0;opacity:.85}
+  .badges{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+  .badge{font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25)}
+  h2{font-size:21px;margin:38px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line);letter-spacing:-.3px}
+  h3{font-size:16px;margin:22px 0 8px}
+  p{margin:8px 0}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+  th{text-align:left;background:#f1f5f9;padding:9px 10px;border:1px solid var(--line);font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  td{padding:9px 10px;border:1px solid var(--line);vertical-align:top}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  code{background:#f1f5f9;padding:1px 5px;border-radius:5px;font-size:12.5px}
+  pre{background:var(--code);color:var(--code-ink);border-radius:10px;padding:16px;overflow-x:auto;font-size:12.5px;line-height:1.5}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.4px;text-transform:uppercase}
+  .pill.decided{background:var(--ok-soft);color:var(--ok);border:1px solid #bbf7d0}
+  .pill.rec{background:var(--warn-soft);color:var(--warn);border:1px solid #fde68a}
+  .pill.open{background:var(--open-soft);color:var(--open);border:1px solid #e9d5ff}
+  .note{background:var(--brand-soft);border:1px solid #a5f3fc;border-radius:10px;padding:12px 16px;font-size:14px;margin:14px 0}
+  .note b{color:#155e75}
+  /* Architecture diagram */
+  .arch{display:flex;flex-direction:column;gap:10px;margin:16px 0}
+  .tier{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+  .node{flex:1;min-width:150px;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-size:13px;text-align:center}
+  .node b{display:block;font-size:13.5px;margin-bottom:3px}
+  .node small{color:var(--muted);font-size:11.5px;display:block}
+  .node.app{border-color:#0e7490;background:var(--brand-soft)}
+  .node.edge{border-color:#b45309;background:var(--warn-soft)}
+  .node.groq{border-color:#7c3aed;background:#f5f3ff}
+  .node.data{border-color:#15803d;background:var(--ok-soft)}
+  .arrow{ text-align:center;color:var(--muted);font-size:16px;line-height:1;margin:2px 0}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0;font-size:13px}
+  .flow .step{background:#f1f5f9;border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+  .flow .arr{color:var(--muted)}
+  /* milestones */
+  .ms{border-left:4px solid var(--brand);padding:14px 18px;background:var(--card);border-radius:0 10px 10px 0;margin:14px 0;box-shadow:0 1px 2px rgba(15,23,42,.05)}
+  .ms h3{margin:0 0 4px;display:flex;align-items:center;gap:10px}
+  .ms .tag{font-size:11px;font-weight:800;color:#fff;background:var(--brand);border-radius:6px;padding:2px 8px;letter-spacing:.5px}
+  .ms ul{margin:8px 0 4px;padding-left:20px}
+  .ms li{margin:4px 0}
+  .accept{background:#f8fafc;border:1px dashed var(--line);border-radius:8px;padding:8px 12px;font-size:13px;margin-top:8px}
+  .accept b{color:var(--ok);font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.two{grid-template-columns:1fr}}
+  footer{margin-top:48px;color:var(--muted);font-size:12.5px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Masary — Technical Plan</h1>
+  <p>Voice &amp; chat-first expense tracker · React Native + Expo + NativeWind · bilingual (Egyptian Arabic / English / code-switching)</p>
+  <div class="badges">
+    <span class="badge">Status: v1.3 — auth decided · skills verified · UI plan companion added</span>
+    <span class="badge">Date: 2026-08-24</span>
+    <span class="badge">Based on: market research report (data/market-research-masary/report.md)</span>
+  </div>
+</header>
+
+<div class="note">
+  <b>Round 3 applied:</b> <b>Auth decided</b> — sign-up from day one + Continue as Guest (guest = SQLite-only local storage; signed-in = full Supabase sync, same account on any device shows the same data; guest→account upgrade merges local history into the cloud). <b>Skills verified</b> — <code>supabase</code>, <code>supabase-postgres-best-practices</code>, <code>vercel-react-native-skills</code> installed at <code>projects/masary/.agents/skills/</code> (+ .claude mirror, skills-lock.json). <b>Keys list added</b> (§11). Companion artifact: <b>UI/UX plan</b> at <code>docs/ui-ux-plan.html</code> (design directions, flows, screen specs — vibrant &amp; saturated direction).
+</div>
+
+<h2>1 · Product summary</h2>
+<div class="card">
+  <p><b>Masary</b> (مصاري — "money") is a mobile app where logging an expense takes one message. The user opens the app and <b>types or talks</b> what they spent — groceries, Amazon, a street purchase, anything — and an AI model converts it into a structured transaction stored in the database, with reporting by day, month, and category. <b>Text input is always available; voice is an optional feature, not a requirement.</b> The <b>UI copy is Modern Standard Arabic (فصيح), RTL-first</b>, with an English toggle — while user input in Egyptian dialect, MSA, English, or mixed is fully understood.</p>
+  <div class="two">
+    <div class="node app"><b>Chat page (the heart)</b><small>Conversational UI like Claude/ChatGPT. Text (always) or voice (optional) in; the model extracts what was spent, when, where; transaction stored; ask questions about spending too.</small></div>
+    <div class="node app"><b>Dashboard</b><small>See everything: daily/monthly totals, category breakdown, trends, recent transactions, multi-currency (EGP default).</small></div>
+  </div>
+  <p style="margin-top:10px">Example inputs the pipeline must handle:</p>
+  <ul>
+    <li><code>bought groceries for 200</code> → 1 transaction, EGP 200, groceries, today</li>
+    <li><code>spent 3.50 on coffee yesterday</code> → 1 transaction, EGP 3.50 (inferred), coffee, yesterday's date</li>
+    <li><code>شريت قهوة وميترو بـ 35</code> → smart multi-item: when only a total is given, the assistant asks for each item's amount before saving (mixed-script)</li>
+    <li><code>دفعت 50 للراجل اللي على الناصية</code> → dialect slang, merchant inferred null, category guess + confirm</li>
+    <li><code>دفعت 50 لأحمد</code> → person names are always captured and noted (<code>person: "أحمد"</code>), never dropped</li>
+    <li><code>how much did I spend on coffee this month?</code> → chat answers from real data</li>
+  </ul>
+</div>
+
+<h2>2 · Stack decisions</h2>
+<table>
+  <tr><th>Layer</th><th>Choice</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>Mobile framework</td><td>React Native + <b>Expo</b> (managed, dev builds)</td><td><span class="pill decided">DECIDED</span></td><td>Captain-set. Dev build needed (native modules), EAS for builds.</td></tr>
+  <tr><td>Styling</td><td><b>NativeWind</b> (Tailwind for RN)</td><td><span class="pill decided">DECIDED</span></td><td>Captain-set. Design tokens via tailwind config.</td></tr>
+  <tr><td>Navigation</td><td>Expo Router (tabs: Chat · Dashboard · Settings)</td><td><span class="pill decided">DECIDED</span></td><td>File-based routing, deep links for quick-capture shortcuts. Package identity for store readiness chosen at M0 (§10).</td></tr>
+  <tr><td>Voice capture</td><td><code>expo-audio</code> — 16&nbsp;kHz mono (WAV on iOS, m4a on Android)</td><td><span class="pill decided">DECIDED</span></td><td>Both formats accepted by Groq; tap-to-talk primary.</td></tr>
+  <tr><td>Speech-to-text</td><td><b>Groq</b> <code>whisper-large-v3-turbo</code> (fallback: <code>whisper-large-v3</code>)</td><td><span class="pill decided">DECIDED</span></td><td>Captain confirmed: Groq cloud models with his API key — enough for his usage, no heavy quota machinery. Key still lives server-side (Edge Function), never in the app binary. $0.04/hr, ~216× realtime. Benchmark vs Deepgram Nova-3 Arabic stays in M3.</td></tr>
+  <tr><td>Extraction LLM</td><td>Groq <code>gpt-oss-120b</code> with <b>strict JSON-schema structured outputs</b> (fallback <code>gpt-oss-20b</code>)</td><td><span class="pill decided">DECIDED</span></td><td><b>Confirmed as requested:</b> Groq cloud model via the captain's API key — gpt-oss-120b with strict JSON schema (guaranteed-valid JSON), called through the Edge Function vault. ~$0.00016/call; usage is light, cost is a rounding error.</td></tr>
+  <tr><td>Local database</td><td>on-device <b>SQLite</b> (<code>expo-sqlite</code>) — source of truth</td><td><span class="pill decided">DECIDED</span></td><td>Captain confirmed. <code>expo-sqlite</code> runs identically on iOS and Android, so cross-platform is covered. <b>Added requirement:</b> full backup + import — all data exportable and importable on another phone running the same app (JSON backup file + Supabase cloud backup when signed in).</td></tr>
+  <tr><td>Backend / cloud</td><td><b>Supabase</b> — Postgres + RLS + Auth + Edge Functions (Groq key vault)</td><td><span class="pill decided">DECIDED</span></td><td>Captain confirmed. Crew must load the captain-installed skills <code>supabase-postgres-best-practices</code>, <code>supabase</code>, and <code>vercel-react-native-skills</code> before Supabase/RN work. MCP stays rejected as mobile backend; optional later add-on so Claude can query expenses.</td></tr>
+  <tr><td>Auth</td><td>Supabase Auth — <b>sign-up from day one</b> (email + Google/Apple OAuth) + <b>Continue as Guest</b></td><td><span class="pill decided">DECIDED</span></td><td>Captain decided. Guest = data stored <b>only</b> in local SQLite, never leaves the device. Signed-in = syncs to Supabase whenever possible; same account on a different device shows the same data. Guests still get AI extraction via the Edge Function (unauthenticated, rate-limited — no account needed for processing, only for storage). Guest → account upgrade one-time merges local history into the cloud.</td></tr>
+  <tr><td>Sync</td><td>Custom outbox push/pull on SQLite (idempotent upserts by uuid)</td><td><span class="pill decided">DECIDED</span></td><td><b>Multiple users expected</b> — each user's data isolated via RLS; append-mostly per user → simple outbox sync still fine for v1.</td></tr>
+  <tr><td>State / data fetching</td><td>TanStack Query + Zustand</td><td><span class="pill decided">DECIDED</span></td><td>Captain confirmed, with TanStack best-practice layout inside <code>services/</code>: <code>api.ts</code> · <code>queries.ts</code> · <code>mutations.ts</code>.</td></tr>
+  <tr><td>Validation</td><td>Zod (extraction JSON + API contracts)</td><td><span class="pill decided">DECIDED</span></td><td>Parse → 1 repair retry → else <code>needs_review</code> keeping audio.</td></tr>
+  <tr><td>Currency</td><td>Integer minor units + ISO-4217; EGP default; FX snapshot at capture</td><td><span class="pill decided">DECIDED</span></td><td>Decimal input is always OK (3.5, 3.50, ٣٫٥٠) — converted to integer minor units internally so math never drifts. Display: original + EGP equivalent.</td></tr>
+</table>
+
+<h2>3 · System architecture</h2>
+<div class="card">
+  <div class="arch">
+    <div class="tier">
+      <div class="node app"><b>Chat page</b><small>voice / text input<br>message bubbles · confirm cards</small></div>
+      <div class="node app"><b>Dashboard</b><small>aggregates · charts<br>category · trends</small></div>
+      <div class="node app"><b>Local SQLite</b><small>transactions · captures · chat log<br>OFFLINE QUEUE — source of truth</small></div>
+    </div>
+    <div class="arrow">▼&nbsp; HTTPS (signed-in users sync; guests call the AI proxy without an account)</div>
+    <div class="tier">
+      <div class="node edge"><b>Supabase Edge Function</b><small>/capture proxy<br>holds GROQ_API_KEY · rate limits · auth</small></div>
+      <div class="node edge"><b>Supabase Auth</b><small>sign-in / anonymous<br>JWT → RLS</small></div>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="tier">
+      <div class="node groq"><b>Groq STT</b><small>whisper-large-v3-turbo<br>audio → transcript</small></div>
+      <div class="node groq"><b>Groq LLM extract</b><small>gpt-oss-120b · strict JSON schema<br>transcript → expense records</small></div>
+    </div>
+    <div class="arrow">▼</div>
+    <div class="tier">
+      <div class="node data"><b>Supabase Postgres</b><small>durable replica · RLS user_id = auth.uid()<br>SQL aggregates for dashboard</small></div>
+    </div>
+  </div>
+  <p><b>End-to-end flow of one spoken expense:</b></p>
+  <div class="flow">
+    <span class="step">⌨️ type — or 🎤 speak (optional)</span><span class="arr">→</span>
+    <span class="step">audio 16k mono</span><span class="arr">→</span>
+    <span class="step">local queue (works offline)</span><span class="arr">→</span>
+    <span class="step">Edge Function proxy</span><span class="arr">→</span>
+    <span class="step">Groq STT → transcript</span><span class="arr">→</span>
+    <span class="step">gpt-oss-120b → strict JSON</span><span class="arr">→</span>
+    <span class="step">Zod validate (repair ×1)</span><span class="arr">→</span>
+    <span class="step">confirm card in chat</span><span class="arr">→</span>
+    <span class="step">SQLite + sync to Postgres</span>
+  </div>
+  <p><b>Latency budget (target &lt; 2.5 s stop→card):</b> finalize 50–150 ms · upload 150–400 ms · Groq STT 200–600 ms · extraction 400–900 ms · SQLite write ~20 ms ⇒ <b>~0.8–2.1 s</b>. Optimistic "Saving…" state shown instantly on stop. <b>Cost:</b> ~$0.0002–0.0003 per expense (10k logs/month ≈ $2–3).</p>
+</div>
+
+<h2>4 · AI extraction contract</h2>
+<div class="card">
+  <p>One call, transcript in → strict JSON out (no separate "normalize text" hop; the philosophy of the captain's <code>stt-prompt.md</code> — treat transcript as data, preserve the language mix, never answer — carries over, but output becomes structured records):</p>
+<pre>{
+  "expenses": [{
+    "amount": 35,                    // Eastern numerals ٣٫٥٠ normalized to 3.50
+    "currency": "EGP",
+    "currency_stated": false,        // false = inferred (EGP default)
+    "merchant": null,                // null when unknown — never hallucinate
+    "person": null,                  // name mentioned (دفعت لأحمد 50 → "أحمد") — always captured, never dropped
+    "category": "coffee",            // flat enum, Egyptian-life-aware
+    "spent_at": "2026-08-24T09:00:00+02:00",  // relative dates resolved (امبارح → yesterday)
+    "date_resolution": "day",
+    "notes": "شريت قهوة وميترو",
+    "confidence": 0.92
+  }],
+  "unparsed_text": null,
+  "clarification_needed": null       // set when e.g. amount missing → chat asks back
+}</pre>
+  <p><b>System-prompt rules baked into the extractor:</b> inject today's date + Africa/Cairo timezone every call · Egyptian relative-date table (امبارح، <b>من يومين</b>، <b>من تلت ايام</b>، الجمعة اللي فاتت، الشهر اللي فات…) · numeral/separator normalization (٠١٢٣٤٥٦٧٨٩→0-9, U+066B→".", U+066C→",") both instructed and enforced by a deterministic JS post-pass · Arabic currency word map (جنيه→EGP، دولار→USD، ريال→SAR، درهم→AED) · never invent amounts or merchants · <b>person names mentioned are always captured in the <code>person</code> field — never dropped</b> · multi-item utterances with only a total ask back for per-item amounts via <code>clarification_needed</code> · category enum: food · coffee · groceries · transport · utilities · rent · health · personal · entertainment · shopping · education · travel · family · charity · other.</p>
+</div>
+
+<h2>5 · Data model (local SQLite = cloud Postgres mirror)</h2>
+<div class="card">
+<pre>CREATE TABLE transactions (
+  id UUID PRIMARY KEY,               -- generated on device, upsert-safe
+  user_id TEXT,
+  amount_minor INTEGER NOT NULL,     -- piastres/cents; never floats
+  currency CHAR(3) NOT NULL,         -- EGP default
+  fx_rate_to_egp REAL,               -- snapshot at capture; never restated
+  merchant TEXT,
+  person TEXT,                    -- name mentioned (e.g. أحمد) — always captured
+  category TEXT NOT NULL,
+  spent_at TEXT NOT NULL,            -- ISO-8601 with tz
+  notes TEXT,
+  source TEXT NOT NULL,              -- 'chat_text' | 'chat_voice' | 'edit'
+  raw_input TEXT,                    -- original transcript/text for audit
+  status TEXT NOT NULL DEFAULT 'confirmed',  -- pending|confirmed|needs_review
+  created_at TEXT, updated_at TEXT, synced_at TEXT
+);
+
+CREATE TABLE captures (              -- offline queue for voice
+  id UUID PRIMARY KEY,
+  audio_path TEXT, status TEXT,      -- recording|transcribing|extracted|synced|failed|needs_review
+  transcript TEXT, extracted_json TEXT, retry_count INTEGER DEFAULT 0,
+  created_at TEXT
+);
+
+CREATE TABLE chat_messages (
+  id UUID PRIMARY KEY, role TEXT,    -- 'user' | 'assistant'
+  content TEXT, transactions_json TEXT,  -- cards rendered from the transaction
+  created_at TEXT
+);</pre>
+  <p>RLS on Postgres: <code>user_id = auth.uid()</code> on every table — multiple users expected, each fully isolated. Dashboard aggregates read from Postgres when online (SQL <code>GROUP BY</code> month/category/currency) and from SQLite offline.</p>
+  <p><b>Backup &amp; portability (captain requirement):</b> every table exports as one JSON backup file (schema-versioned); importing it on another phone running the same app restores everything; Supabase Postgres acts as the continuous cloud backup per user when signed in. Device migration = sign in on the new phone (sync pull) or import the backup file.</p>
+</div>
+
+<h2>6 · App structure (Expo Router)</h2>
+<div class="card">
+<pre>masary/
+├─ app/                        # routes only (expo-router) — one file per screen
+│  ├─ _layout.tsx              # root stack + providers (query, auth, sqlite)
+│  ├─ (tabs)/
+│  │  ├─ _layout.tsx           # Chat · Dashboard · Settings tabs
+│  │  ├─ index.tsx             # CHAT page (default landing)
+│  │  ├─ dashboard.tsx         # DASHBOARD
+│  │  └─ settings.tsx          # language (Arabic default/EN), currency, categories, account, backup & import
+│  └─ capture.tsx              # deep-link quick-capture target
+├─ components/                 # by feature — each file's header says what it is and where it's used
+│  ├─ chat/                    # MessageBubble · VoiceButton · ConfirmCard · Composer (chat + capture screens)
+│  ├─ dashboard/               # SpendChart · CategoryDonut · TransactionList · PeriodToggle
+│  └─ ui/                      # shared primitives (Button, Card, Sheet, Typo) used across features
+├─ services/                   # TanStack best practice — api.ts · queries.ts · mutations.ts
+├─ lib/                        # db (sqlite + outbox sync) · ai (stt · extract · schema · normalize) · supabase client
+├─ hooks/                      # reusable hooks, named use*
+├─ utils/                      # pure helpers (dates, currency, numeral normalization)
+├─ types/                      # shared TypeScript types
+├─ constants/                  # category enum, currency list, config
+├─ assets/                     # images, fonts, icons
+└─ tailwind.config.js · app.json · eas.json</pre>
+  <p><b>Organization rules (captain requirement):</b> a component is easy to locate by feature and its header comment names every screen that uses it · everything documented (file-header comment: purpose + where used; services/lib functions get JSDoc) · every kind of file lives in its right directory (routes in <code>app/</code>, feature components in <code>components/&lt;feature&gt;/</code>, shared UI in <code>components/ui/</code>, data access in <code>services/</code>, pure helpers in <code>utils/</code>, assets in <code>assets/</code>). Enforced by a structure lint in CI from M0.</p>
+</div>
+
+<h2>7 · Screen specs</h2>
+<div class="two">
+  <div class="card">
+    <h3>Chat page</h3>
+    <ul>
+      <li>Message list: user bubbles (voice shows 🎤 + transcript), assistant replies as <b>transaction confirm cards</b> (amount, category chip, date, merchant) with tap-to-edit before confirm</li>
+      <li>Composer: <b>text field always available</b> + optional mic button; tap-to-talk (~30 s max, live waveform) — voice is a feature, not a must</li>
+      <li>Multi-item input → stacked cards, one per transaction</li>
+      <li>Ambiguity (<code>clarification_needed</code>) → assistant asks back in chat</li>
+      <li>Questions ("how much on coffee this month?") answered from local/remote data</li>
+      <li>Everything queues offline; syncs when online</li>
+      <li><b>UI language: Arabic (RTL) by default</b>, English toggle in Settings; Arabic, English, and mixed input all work in one conversation</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Dashboard</h3>
+    <ul>
+      <li>Period toggle: Today · Week · Month · All</li>
+      <li>Total spend (EGP-normalized + per-currency rows)</li>
+      <li>Category donut + top-categories list with deltas vs previous period</li>
+      <li>Daily bar chart for the month</li>
+      <li>Recent transactions list (swipe to edit/delete)</li>
+      <li>Offline-first: renders from SQLite, refreshes from Postgres</li>
+      <li>Arabic-first labels and full RTL layout</li>
+    </ul>
+  </div>
+</div>
+
+<h2>8 · Milestones</h2>
+
+<div class="ms"><h3><span class="tag">M0</span> Foundations</h3>
+  <ul>
+    <li>Repo wired (clone of captain's GitHub "Masary App" repo), Expo + TypeScript + NativeWind scaffold, ESLint/Prettier, CI (typecheck + lint + test) via EAS + GitHub Actions</li>
+    <li>Expo Router shell: Chat / Dashboard / Settings tabs with placeholder screens; design tokens (colors, typography, dark mode)</li>
+    <li><b>Arabic-first i18n + RTL from day one</b> (English toggle); directory conventions in place: <code>services/</code> (api.ts · queries.ts · mutations.ts), <code>components/</code> by feature + <code>ui/</code>, <code>hooks/ · utils/ · types/ · constants/ · assets/</code>; every file carries a header comment (purpose + where used); structure lint in CI</li>
+  </ul>
+  <div class="accept"><b>Acceptance</b>App runs on device via dev build; tabs navigate; Arabic RTL renders correctly; structure lint + CI green on push.</div>
+</div>
+
+<div class="ms"><h3><span class="tag">M1</span> Data core</h3>
+  <ul>
+    <li>SQLite schema (transactions, captures, chat_messages) + typed query layer</li>
+    <li>Supabase project: Postgres tables + RLS + Auth — <b>sign-up from day one (email + Google/Apple) and Continue as Guest</b>; guest data stays local-only, signed-in data syncs, and a guest who later signs in gets local history merged up to the cloud; Edge Function skeleton with secret vault (guest-capable, rate-limited)</li>
+    <li>Outbox sync: idempotent push/pull, conflict policy last-write-wins, sync-on-launch + foreground retry</li>
+  </ul>
+  <div class="accept"><b>Acceptance</b>Transaction inserted offline appears in Postgres once online; RLS blocks cross-user reads (tested); guest mode makes zero cloud writes; a second device signing into the same account shows identical data.</div>
+</div>
+
+<div class="ms"><h3><span class="tag">M2</span> Chat + text extraction</h3>
+  <ul>
+    <li>Chat UI: bubbles, composer, confirm cards, edit-before-confirm, clarification replies</li>
+    <li>Edge Function <code>/capture</code>: Groq gpt-oss-120b strict-schema extraction, Zod validation + repair retry, numeral/date normalization</li>
+    <li>chat_messages persisted; raw input stored per transaction</li>
+  </ul>
+  <div class="accept"><b>Acceptance</b>"bought groceries for 200" and "شريت قهوة وميترو بـ 35" → correct stored transactions (2 records for the latter) in &lt; 3 s; invalid extraction never silently stored.</div>
+</div>
+
+<div class="ms"><h3><span class="tag">M3</span> Voice pipeline</h3>
+  <ul>
+    <li><code>expo-audio</code> tap-to-talk: 16 kHz mono WAV (iOS) / m4a (Android), waveform, 30 s auto-stop</li>
+    <li>Groq whisper-large-v3-turbo STT via Edge Function; Arabic prompt hint (currency/merchant vocabulary, technique proven in captain's opencode setup)</li>
+    <li>Offline capture queue: record now → transcribe when online; audio retained until synced (N-day retention setting)</li>
+    <li><b>Benchmark gate:</b> 30–50 real code-switched clips, Groq turbo vs Deepgram Nova-3 Arabic; switch vendor if extraction-repair loop misses &gt; 10%</li>
+  </ul>
+  <div class="accept"><b>Acceptance</b>Spoken Egyptian/mixed expense → confirmed transaction in &lt; 2.5 s online; queued and processed after offline period; benchmark report recorded.</div>
+</div>
+
+<div class="ms"><h3><span class="tag">M4</span> Dashboard + Q&A</h3>
+  <ul>
+    <li>Period totals, category donut, daily bars, recent list; multi-currency display (original + EGP equivalent)</li>
+    <li>Chat Q&A over real data ("how much on coffee this month?") via aggregate endpoint (SQL, not LLM math)</li>
+    <li>FX daily snapshot job + manual override</li>
+  </ul>
+  <div class="accept"><b>Acceptance</b>Dashboard correct vs SQL ground truth (property tests); Q&A answers match aggregates; works fully offline.</div>
+</div>
+
+<div class="ms"><h3><span class="tag">M5</span> Polish &amp; pilot</h3>
+  <ul>
+    <li>i18n/RTL hardening, Arabic + English UI, haptics, empty/error states, onboarding (2 screens)</li>
+    <li>Settings: default currency, language, category management, account, <b>backup &amp; import</b> (JSON export/restore, device migration)</li>
+    <li><b>Backup &amp; restore verified:</b> export on one phone → import on another → identical data (also covered by Supabase sync when signed in)</li>
+    <li>EAS internal-test builds (TestFlight / Play internal); captain dogfood loop; crash reporting (Sentry)</li>
+    <li>Play Store readiness per §10 executed as each item falls due (package id at M0; signing, privacy policy, data safety, store assets here)</li>
+    <li>Quick-capture deep link + iOS Shortcut recipe (zero-native) documented</li>
+  </ul>
+  <div class="accept"><b>Acceptance</b>Captain uses it daily for 2 weeks as primary tracker; crash-free ≥ 99%; p95 capture-to-card &lt; 2.5 s.</div>
+</div>
+
+<h2>9 · Risks &amp; mitigations</h2>
+<table>
+  <tr><th>Risk</th><th>Mitigation</th></tr>
+  <tr><td>Code-switched STT quality (Whisper's weak spot)</td><td>Extraction LLM as repair layer; Arabic prompt hint; M3 benchmark gate with Deepgram Nova-3 Arabic as fallback vendor (swap is one Edge Function env change).</td></tr>
+  <tr><td>Groq lineup shifts (Meta models already moved to enterprise in 2026)</td><td>Provider-agnostic Edge Function; strict-schema extraction works on any OpenAI-compatible provider.</td></tr>
+  <tr><td>Users don't trust AI-entered amounts</td><td>Confirm card before commit; raw transcript stored per transaction; edit history.</td></tr>
+  <tr><td>Hallucinated merchants/categories</td><td>Schema forbids invention (null merchant); flat category enum; clarification path.</td></tr>
+  <tr><td>Churn (category killer — 5.8% day-30 retention for finance apps)</td><td>Sub-5-second capture is the product; day-2 onboarding focus; no category setup required to start.</td></tr>
+  <tr><td>Competitor Masareefy (iOS, Egyptian Arabic, Jun 2026)</td><td>Android + cross-platform from day one; code-switching quality; chat Q&A; speed.</td></tr>
+</table>
+
+<h2>10 · Play Store readiness (built in from the start)</h2>
+<div class="card">
+  <p>Everything needed so the app can be <b>submitted to Google Play (and the App Store) later without a rebuild</b>:</p>
+  <table>
+    <tr><th>Requirement</th><th>What we do</th><th>When</th></tr>
+    <tr><td>Package identity</td><td>Unique <code>applicationId</code> (e.g. <code>com.masary.app</code>) + iOS bundle id + app name availability check — near-impossible to change after publishing</td><td>M0</td></tr>
+    <tr><td>Versioning</td><td>Semver + monotonically increasing <code>versionCode</code> discipline from the first commit</td><td>M0</td></tr>
+    <tr><td>Signing &amp; builds</td><td>EAS credentials management — Play requires signed <b>AAB</b> for new apps; keystore generated and stored by EAS (never committed); iOS certificates + provisioning handled the same way</td><td>M5 (EAS from M0)</td></tr>
+    <tr><td>Permissions with purpose</td><td>Mic permission with a clear purpose string ("تسجيل المصروفات بالصوت") — no other permissions beyond internet; nothing sneaky</td><td>M3</td></tr>
+    <tr><td>Privacy policy</td><td>Privacy-policy page (hosted) stating: voice clips transcribed via Groq and deleted after processing, data stored in Supabase, per-user deletion available</td><td>M5</td></tr>
+    <tr><td>Play Data safety form</td><td>Declared: audio (transient), user content; encrypted in transit; deletable — matches the app's actual behavior</td><td>M5</td></tr>
+    <tr><td>Store assets</td><td>Adaptive icon, splash, feature graphic, Arabic-first screenshots + AR/EN listing (title, descriptions)</td><td>M5</td></tr>
+    <tr><td>Target API compliance</td><td>Stay on current Expo SDK so Android target-API windows are met automatically</td><td>ongoing</td></tr>
+    <tr><td>Release path</td><td>EAS build → Play <b>internal testing</b> track → closed testing → production (same ladder on TestFlight for iOS)</td><td>M5+</td></tr>
+  </table>
+</div>
+
+<h2>11 · Awaiting captain decisions</h2>
+<div class="card">
+  <ol>
+    <li><b>Database</b> — <span class="pill decided">DECIDED</span> on-device SQLite, cross-platform, with full backup + import between devices.</li>
+    <li><b>Backend</b> — <span class="pill decided">DECIDED</span> Supabase (Postgres + RLS + Auth + Edge Functions); crew loads the captain-installed skills <code>supabase-postgres-best-practices</code>, <code>supabase</code>, <code>vercel-react-native-skills</code>.</li>
+    <li><b>Auth model</b> — <span class="pill decided">DECIDED</span> sign-up from day one + Continue as Guest (local-only storage; cloud sync for accounts; guest upgrade merges history).</li>
+    <li><b>Keys needed from the captain</b> — <span class="pill open">OPEN</span>
+      <table style="margin-top:8px">
+        <tr><th>Key</th><th>Used for</th><th>Where it lives</th></tr>
+        <tr><td><code>GROQ_API_KEY</code></td><td>STT (whisper) + extraction (gpt-oss-120b) — one key covers both</td><td>Supabase Edge Function secrets only — never in the app binary or git</td></tr>
+        <tr><td><code>SUPABASE_ACCESS_TOKEN</code></td><td>lets the crew create/configure the Supabase project, run migrations, set edge secrets via CLI</td><td>local gitignored config only</td></tr>
+        <tr><td><em>or</em> <code>SUPABASE_URL</code> + <code>SUPABASE_ANON_KEY</code></td><td>alternative if the captain prefers creating the Supabase project himself in the dashboard</td><td>app <code>.env</code> (public-safe, gitignored until M0 adds the env template)</td></tr>
+        <tr><td><code>SENTRY_DSN</code> <em>(optional, M5)</em></td><td>crash reporting</td><td>app <code>.env</code></td></tr>
+      </table>
+      Expo/EAS account login stays interactive with the captain at build time (M5).</li>
+    <li><b>GitHub repo</b> — <span class="pill decided">RESOLVED</span> <code>Mohamed-El-Sharqawy/masary-app</code> wired as origin, project registered.</li>
+    <li><b>Skills location</b> — <span class="pill decided">RESOLVED</span> all three verified at <code>projects/masary/.agents/skills/</code> (+ <code>.claude/skills</code> mirror + <code>skills-lock.json</code>).</li>
+    <li><b>UI direction</b> — <span class="pill decided">DECIDED</span> "Flamingo" (flat coral #F43F5E + magenta #EC4899 on rose cream #FFF1F3; teal success; flat only, no gradients) · Cairo font · Western numerals default (Eastern toggle) · follow-system theme · one 3-screen onboarding · logo = captain-provided image with text "مصاري" placeholder — full spec in <code>docs/ui-ux-plan.html</code>.</li>
+  </ol>
+  <p style="color:var(--muted);font-size:13px">M0 (scaffold) is ready to sail on the captain's go; M1 (data core) additionally needs the keys above.</p>
+</div>
+</body>
+</html>

@@ -4,8 +4,10 @@
  * rate-limited by x-device-id (30/UTC day). Audio input → Groq STT
  * (whisper-large-v3-turbo, fallback whisper-large-v3), then strict
  * json_schema extraction (gpt-oss-120b, fallback gpt-oss-20b) with an
- * Africa/Cairo clock injected per call. GROQ_API_KEY lives only in Supabase
- * secrets — never logged, never returned. Used by: services/api.ts.
+ * Africa/Cairo clock injected per call. A normalizeExtraction post-pass
+ * repairs model drift (date→spent_at, field defaults, strict re-validation)
+ * so payloads always match lib/ai/schema.ts. GROQ_API_KEY lives only in
+ * Supabase secrets — never logged, never returned. Used by: services/api.ts.
  */
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
@@ -20,6 +22,14 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
+/** Shared enums for the extraction contract — single source for the JSON schema and the post-pass. */
+const CURRENCIES = ['EGP', 'USD', 'EUR', 'SAR', 'AED', 'KWD', 'GBP'];
+const CATEGORIES = [
+  'food', 'coffee', 'groceries', 'transport', 'utilities', 'rent',
+  'health', 'personal', 'entertainment', 'shopping', 'education',
+  'travel', 'family', 'charity', 'other',
+];
+
 const EXPENSE_SCHEMA = {
   type: 'object',
   properties: {
@@ -29,17 +39,13 @@ const EXPENSE_SCHEMA = {
         type: 'object',
         properties: {
           amount: { type: 'number' },
-          currency: { type: 'string', enum: ['EGP', 'USD', 'EUR', 'SAR', 'AED', 'KWD', 'GBP'] },
+          currency: { type: 'string', enum: CURRENCIES },
           currency_stated: { type: 'boolean' },
           merchant: { type: ['string', 'null'] },
           person: { type: ['string', 'null'] },
           category: {
             type: 'string',
-            enum: [
-              'food', 'coffee', 'groceries', 'transport', 'utilities', 'rent',
-              'health', 'personal', 'entertainment', 'shopping', 'education',
-              'travel', 'family', 'charity', 'other',
-            ],
+            enum: CATEGORIES,
           },
           spent_at: { type: 'string' },
           date_resolution: { type: 'string' },
@@ -77,7 +83,10 @@ function buildSystemPrompt(nowIso: string, tz: string): string {
     '6. Arabic currency words: جنيه = EGP, دولار = USD, ريال = SAR, درهم = AED,',
     '   يورو = EUR, إسترليني = GBP, دينار = KWD.',
     '7. Non-expense text (questions, chatter): return expenses [], set unparsed_text to the text.',
-    '8. Output ONLY the JSON object matching the schema. No prose.',
+    '8. Each expense object MUST contain exactly the fields: amount, currency, currency_stated,',
+    '   merchant, person, category, spent_at, date_resolution, notes, confidence.',
+    '   Use spent_at (ISO 8601 with timezone) — never the key date.',
+    '9. Output ONLY the JSON object matching the schema. No prose.',
   ].join('\n');
 }
 
@@ -141,13 +150,99 @@ async function groqStt(apiKey: string, audio: Blob): Promise<string> {
   return data.text ?? '';
 }
 
+/** Normalized expense shape returned to the app (mirrors lib/ai/schema.ts). */
+interface NormalizedExpense {
+  amount: number;
+  currency: string;
+  currency_stated: boolean;
+  merchant: string | null;
+  person: string | null;
+  category: string;
+  spent_at: string;
+  date_resolution: string;
+  notes: string | null;
+  confidence: number;
+}
+
+/** Normalized top-level shape: exactly {expenses, unparsed_text, clarification_needed}. */
+interface NormalizedExtraction {
+  expenses: NormalizedExpense[];
+  unparsed_text: string | null;
+  clarification_needed: string | null;
+}
+
+/**
+ * spent_at resolution for one raw item: prefer an existing spent_at; else take
+ * date, upgrading a bare 'YYYY-MM-DD' to ISO at Cairo +03:00 noon (12:00);
+ * other date strings pass through. Returns '' when neither key is usable.
+ */
+function coerceSpentAt(item: Record<string, unknown>): string {
+  if (typeof item.spent_at === 'string' && item.spent_at) return item.spent_at;
+  if (typeof item.date === 'string' && item.date) {
+    return /^\d{4}-\d{2}-\d{2}$/.test(item.date) ? `${item.date}T12:00:00+03:00` : item.date;
+  }
+  return '';
+}
+
+/**
+ * Post-pass after JSON.parse: repairs model drift before the payload reaches
+ * the app's Zod schema. Renames date→spent_at, applies field defaults, drops
+ * unknown keys, re-validates each item strictly (amount number >= 0, currency
+ * in the 7-enum, category in the 15-enum, usable spent_at) and moves invalid
+ * items into unparsed_text instead of failing the whole call. Top-level keys
+ * are pinned to exactly {expenses, unparsed_text, clarification_needed}.
+ */
+function normalizeExtraction(obj: unknown): NormalizedExtraction {
+  const src = (typeof obj === 'object' && obj !== null ? obj : {}) as Record<string, unknown>;
+  const rawExpenses = Array.isArray(src.expenses) ? src.expenses : [];
+  const expenses: NormalizedExpense[] = [];
+  const rejected: string[] = [];
+  for (const raw of rawExpenses) {
+    const item = (typeof raw === 'object' && raw !== null ? raw : {}) as Record<string, unknown>;
+    const amount = typeof item.amount === 'number' ? item.amount : Number.NaN;
+    const currency = typeof item.currency === 'string' ? item.currency : 'EGP';
+    const category = typeof item.category === 'string' ? item.category : 'other';
+    const spentAt = coerceSpentAt(item);
+    const confidence = typeof item.confidence === 'number' ? item.confidence : 0.5;
+    const candidate: NormalizedExpense = {
+      amount,
+      currency,
+      currency_stated: typeof item.currency_stated === 'boolean' ? item.currency_stated : false,
+      merchant: typeof item.merchant === 'string' ? item.merchant : null,
+      person: typeof item.person === 'string' ? item.person : null,
+      category,
+      spent_at: spentAt,
+      date_resolution: typeof item.date_resolution === 'string' ? item.date_resolution : 'day',
+      notes: typeof item.notes === 'string' ? item.notes : null,
+      confidence: Math.min(1, Math.max(0, confidence)),
+    };
+    const valid =
+      Number.isFinite(amount) &&
+      amount >= 0 &&
+      CURRENCIES.includes(currency) &&
+      CATEGORIES.includes(category) &&
+      spentAt !== '';
+    if (valid) expenses.push(candidate);
+    else rejected.push(JSON.stringify(raw));
+  }
+  const baseUnparsed = typeof src.unparsed_text === 'string' ? src.unparsed_text : null;
+  const rejectedText = rejected.length > 0 ? rejected.join(' | ') : null;
+  const unparsedText = [baseUnparsed, rejectedText].filter(Boolean).join(' | ') || null;
+  return {
+    expenses,
+    unparsed_text: unparsedText,
+    clarification_needed:
+      typeof src.clarification_needed === 'string' ? src.clarification_needed : null,
+  };
+}
+
 /** Groq extraction with model fallback + strict schema; throws on total failure. */
 async function groqExtract(
   apiKey: string,
   transcript: string,
   nowIso: string,
   tz: string,
-): Promise<unknown> {
+): Promise<NormalizedExtraction> {
   const attempt = async (model: string) =>
     fetch(`${GROQ_URL}/chat/completions`, {
       method: 'POST',
@@ -167,7 +262,7 @@ async function groqExtract(
   const data = (await res.json()) as { choices?: { message?: { content?: string } }[] };
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error('extraction returned no content');
-  return JSON.parse(content);
+  return normalizeExtraction(JSON.parse(content));
 }
 
 Deno.serve(async (req: Request) => {

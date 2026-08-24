@@ -31,3 +31,17 @@
   needs_review), app/(tabs)/index.tsx wired.
 - lib/ai/extract.ts extraction wrapper + 9 mocked tests.
 - Verified: tsc 0 errors, lint clean, structure OK (36 files), 47/47 tests.
+
+## M2 — Chat + text extraction (2026-08-24)
+- Chat UI complete: Composer/MessageBubble/ConfirmCard (animated)/ExampleChips/
+  OfflineBanner + hooks/useChat.ts pipeline (extraction → Zod → 1 repair retry →
+  needs_review fallback).
+- Edge Function /capture hardened: normalizeExtraction post-pass (date→spent_at
+  ISO+Cairo, field defaults, unknown-key drop, invalid-item quarantine),
+  shared CURRENCIES/CATEGORIES consts, prompt rule 8 (exact 10-field contract).
+- LIVE-VERIFIED against deployed function (gkueawywmczejwvzyvbk):
+  * "bought groceries for 200" → clean contract JSON, EGP, category groceries.
+  * "شريت قهوة وميترو بـ 35" → clarification_needed asks per-item split — no guessing.
+  * "دفعت 50 لأحمد امبارح" → person أحمد captured, امبارح→2026-08-23.
+- .env (gitignored) wired with EXPO_PUBLIC_SUPABASE_URL/ANON_KEY; .env.example committed.
+- Verified: tsc 0, lint 0, structure OK, 47/47 tests.

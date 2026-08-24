@@ -45,3 +45,29 @@
   * "دفعت 50 لأحمد امبارح" → person أحمد captured, امبارح→2026-08-23.
 - .env (gitignored) wired with EXPO_PUBLIC_SUPABASE_URL/ANON_KEY; .env.example committed.
 - Verified: tsc 0, lint 0, structure OK, 47/47 tests.
+
+## M3 — Voice pipeline (2026-08-24)
+- lib/voice/recorder.ts: expo-audio 16kHz mono custom preset (WAV iOS / m4a Android),
+  permission flow, interruption handling.
+- lib/voice/queue.ts: AsyncStorage FIFO capture queue with 3-strike needs_review.
+- lib/voice/process.ts: queue drain → /capture audio → extract → Transaction insert
+  + chat append; clarification messages surfaced in chat.
+- components/chat/VoiceButton.tsx: hold-to-talk, pulse, medium haptic, drag-up
+  cancel hint, 60s auto-stop; wired into Composer.
+- hooks/useVoice.ts wrapper; app/capture.tsx quick-capture screen.
+- services/api.ts captureAudio() multipart; mutations extracted plain functions.
+- Verified: tsc 0, lint 0, structure OK (45 files), 72/72 tests.
+
+## M4 — Dashboard + aggregation (2026-08-24)
+- lib/aggregates.ts: monthlySummary/dailyTotals/topMerchants — parameterized SQL,
+  Cairo month bounds, FX-normalized EGP base, integer minor units.
+- services/queries.ts: aggregate hooks (60s staleTime) + useRecentTransactions.
+- app/(tabs)/dashboard.tsx: period pills, total card with FX snapshot line,
+  flat donut (react-native-svg, amber accent), daily bars, top merchants,
+  recent 8 → EditSheet, pull-to-refresh, empty state.
+- components/dashboard/EditSheet.tsx: animated bottom sheet (amount decimal-pad
+  with Eastern numerals, category chips, DD/MM/YYYY + quick chips, notes,
+  delete with confirm).
+- tests/aggregates.test.ts: 15 cases — Cairo bounds, FX weighting, KWD factor,
+  day rollover UTC+3, SQL parameterization asserts.
+- Verified: tsc 0, lint 0, structure OK (45 files), 72/72 tests.

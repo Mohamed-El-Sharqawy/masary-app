@@ -1,8 +1,10 @@
 /**
- * TanStack Query mutations: writes for the Masary app.
+ * TanStack Query mutations + plain write functions for the Masary app.
  * Insert/update/delete transactions and chat messages in local SQLite (the
- * source of truth), mark dirty for the outbox sync. Used by: chat pipeline,
- * edit sheet, settings backup.
+ * source of truth), mark dirty for the outbox sync. The plain
+ * insertTransaction/appendChatMessage are the same writes callable outside
+ * React (voice queue drain in lib/voice/process.ts). Used by: chat pipeline
+ * (hooks/useChat.ts), edit sheet, settings backup, lib/voice/process.ts.
  */
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { QueryClient } from '@tanstack/react-query';
@@ -15,25 +17,49 @@ function invalidateAll(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ['chat_messages'] });
 }
 
+/**
+ * Plain (non-hook) transaction insert — one extracted expense row, marked
+ * dirty for the outbox sync. Returns the generated id.
+ */
+export async function insertTransaction(
+  tx: Omit<Transaction, 'id' | 'created_at' | 'updated_at' | 'synced_at'>,
+): Promise<string> {
+  const db = await getDb();
+  const id = uuid();
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `INSERT INTO transactions (id, user_id, amount_minor, currency, fx_rate_to_egp, merchant, person, category, spent_at, notes, source, raw_input, status, created_at, updated_at, dirty)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+    [
+      id, tx.user_id, tx.amount_minor, tx.currency, tx.fx_rate_to_egp,
+      tx.merchant, tx.person, tx.category, tx.spent_at, tx.notes,
+      tx.source, tx.raw_input, tx.status, now, now,
+    ],
+  );
+  return id;
+}
+
+/** Plain (non-hook) chat message append (user or assistant). */
+export async function appendChatMessage(m: {
+  role: 'user' | 'assistant';
+  content: string;
+  transactions_json?: string | null;
+}): Promise<string> {
+  const db = await getDb();
+  const id = uuid();
+  const now = new Date().toISOString();
+  await db.runAsync(
+    `INSERT INTO chat_messages (id, role, content, transactions_json, created_at) VALUES (?, ?, ?, ?, ?)`,
+    [id, m.role, m.content, m.transactions_json ?? null, now],
+  );
+  return id;
+}
+
 /** Create a transaction row from extracted-expense fields. */
 export function useInsertTransaction() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (tx: Omit<Transaction, 'id' | 'created_at' | 'updated_at' | 'synced_at'>) => {
-      const db = await getDb();
-      const id = uuid();
-      const now = new Date().toISOString();
-      await db.runAsync(
-        `INSERT INTO transactions (id, user_id, amount_minor, currency, fx_rate_to_egp, merchant, person, category, spent_at, notes, source, raw_input, status, created_at, updated_at, dirty)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`,
-        [
-          id, tx.user_id, tx.amount_minor, tx.currency, tx.fx_rate_to_egp,
-          tx.merchant, tx.person, tx.category, tx.spent_at, tx.notes,
-          tx.source, tx.raw_input, tx.status, now, now,
-        ],
-      );
-      return id;
-    },
+    mutationFn: insertTransaction,
     onSuccess: () => invalidateAll(qc),
   });
 }
@@ -70,16 +96,7 @@ export function useDeleteTransaction() {
 export function useAppendChatMessage() {
   const qc = useQueryClient();
   return useMutation({
-    async mutationFn(m: { role: 'user' | 'assistant'; content: string; transactions_json?: string | null }) {
-      const db = await getDb();
-      const id = uuid();
-      const now = new Date().toISOString();
-      await db.runAsync(
-        `INSERT INTO chat_messages (id, role, content, transactions_json, created_at) VALUES (?, ?, ?, ?, ?)`,
-        [id, m.role, m.content, m.transactions_json ?? null, now],
-      );
-      return id;
-    },
+    mutationFn: appendChatMessage,
     onSuccess: () => invalidateAll(qc),
   });
 }

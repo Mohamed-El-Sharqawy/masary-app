@@ -1,11 +1,12 @@
 /**
- * Chat composer: text input + send button + inert mic placeholder (M3 wires voice).
+ * Chat composer: text input + send button + hold-to-talk mic (M3 voice).
  * RTL-aware row (mic on the thumb side), Cairo font, flat Flamingo tokens.
  * Shows the optimistic "جاري الحفظ…" state while a capture is in flight.
  * Used by: app/(tabs)/index.tsx (chat screen).
  */
 import { useState } from 'react';
 import { I18nManager, Pressable, Text, TextInput, View } from 'react-native';
+import { VoiceButton } from '@/components/chat/VoiceButton';
 import { t, usePrefs } from '@/lib/i18n';
 
 interface ComposerProps {
@@ -36,15 +37,8 @@ export function Composer({ onSend, disabled = false, saving = false }: ComposerP
         </Text>
       ) : null}
       <View className="flex-row items-center gap-2">
-        {/* mic — rendered but inert until the M3 voice pipeline lands */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="microphone"
-          disabled
-          className="h-11 w-11 items-center justify-center rounded-full bg-chip"
-        >
-          <Text className="text-lg opacity-40">🎙</Text>
-        </Pressable>
+        {/* mic — hold-to-talk; takes queue offline and drain when online */}
+        <VoiceButton />
         <TextInput
           className="h-11 min-w-0 flex-1 rounded-full border border-borderx bg-cream px-4 font-cairo text-base text-ink"
           placeholderTextColor="#8A6B74"

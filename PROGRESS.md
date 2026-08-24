@@ -16,3 +16,18 @@
 - Tests: 38 vitest tests green (numerals, currency, dates, schema).
 - Verified: npx tsc --noEmit exit 0; npm test 4 files/38 tests passed;
   npm run structure OK.
+
+## M1 — Data core (2026-08-24)
+- SQLite schema live (transactions/captures/chat_messages + dirty outbox col) via lib/db.ts.
+- Supabase project linked (gkueawywmczejwvzyvbk); migrations pushed; RLS auth.uid()
+  on every table + indexes; RLS shape asserts in supabase/tests/rls_test.sql.
+- Edge Function /capture deployed (Groq STT + strict-schema extraction, guest
+  rate-limit 30/day, GROQ_API_KEY in secrets only).
+- lib/: supabase.ts (auth helpers incl. Google/Apple OAuth), auth-store.ts (guest
+  vs signed-in), sync.ts (outbox push/pull LWW, batches of 50, launch+foreground
+  auto-sync, guest no-op), backup.ts (JSON export/import via file-system+sharing).
+- Chat UI live: Composer, MessageBubble, ConfirmCard (animated), ExampleChips,
+  OfflineBanner, hooks/useChat.ts pipeline (extraction → zod → repair retry →
+  needs_review), app/(tabs)/index.tsx wired.
+- lib/ai/extract.ts extraction wrapper + 9 mocked tests.
+- Verified: tsc 0 errors, lint clean, structure OK (36 files), 47/47 tests.

@@ -35,11 +35,11 @@ export function useTransactions(limit = 100) {
     queryKey: ['transactions', limit],
     queryFn: async (): Promise<Transaction[]> => {
       const db = await getDb();
-      const rows = await db.getAllAsync(
+      const rows = (await db.getAllAsync(
         'SELECT * FROM transactions ORDER BY spent_at DESC LIMIT ?',
         [limit],
-      );
-      return (rows as Record<string, unknown>[]).map(rowToTransaction);
+      )) as Record<string, unknown>[];
+      return rows.map(rowToTransaction);
     },
   });
 }
@@ -50,11 +50,11 @@ export function useChatMessages(limit = 200) {
     queryKey: ['chat_messages', limit],
     queryFn: async (): Promise<ChatMessage[]> => {
       const db = await getDb();
-      const rows = await db.getAllAsync(
+      const rows = (await db.getAllAsync(
         'SELECT * FROM chat_messages ORDER BY created_at ASC LIMIT ?',
         [limit],
-      );
-      return (rows as Record<string, unknown>[]).map((r) => ({
+      )) as Record<string, unknown>[];
+      return rows.map((r) => ({
         id: String(r.id),
         role: r.role as 'user' | 'assistant',
         content: String(r.content),

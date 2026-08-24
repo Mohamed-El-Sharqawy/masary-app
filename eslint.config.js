@@ -25,9 +25,17 @@ module.exports = tseslint.config(
     },
   },
   {
-    rules: {
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-      '@typescript-eslint/consistent-type-imports': 'off',
+    // Node config files (CommonJS): allow require/module/__dirname.
+    files: ['**/*.js'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { __dirname: 'readonly', __filename: 'readonly' },
     },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
+    // Node ESM scripts: declare console/process globals.
+    files: ['**/*.mjs'],
+    languageOptions: { globals: { console: 'readonly', process: 'readonly' } },
   },
 );

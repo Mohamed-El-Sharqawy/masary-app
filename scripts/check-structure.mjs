@@ -9,7 +9,7 @@
  * Used by: CI (.github/workflows/ci.yml) + local pre-push.
  */
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
-import { join, relative, extname, basename } from 'node:path';
+import { join, relative, extname } from 'node:path';
 
 const ROOT = process.cwd();
 const errors = [];

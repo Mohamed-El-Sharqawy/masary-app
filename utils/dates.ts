@@ -68,8 +68,8 @@ export function monthKey(iso: string): string {
   return new Date(iso).toISOString().slice(0, 7);
 }
 
-/** Weekday (0=Sunday…6=Saturday) on the Cairo calendar. */
-function cairoWeekday(ref: Date): number {
+/** Weekday (0=Sunday…6=Saturday) on the Cairo calendar. Kept for M4 chart tooltips. */
+export function cairoWeekday(ref: Date): number {
   return new Date(ref.getTime() + CAIRO_OFFSET_MS).getUTCDay();
 }
 

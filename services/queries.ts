@@ -39,7 +39,7 @@ export function useTransactions(limit = 100) {
         'SELECT * FROM transactions ORDER BY spent_at DESC LIMIT ?',
         [limit],
       );
-      return rows.map(rowToTransaction);
+      return (rows as Record<string, unknown>[]).map(rowToTransaction);
     },
   });
 }
@@ -54,7 +54,7 @@ export function useChatMessages(limit = 200) {
         'SELECT * FROM chat_messages ORDER BY created_at ASC LIMIT ?',
         [limit],
       );
-      return rows.map((r) => ({
+      return (rows as Record<string, unknown>[]).map((r) => ({
         id: String(r.id),
         role: r.role as 'user' | 'assistant',
         content: String(r.content),

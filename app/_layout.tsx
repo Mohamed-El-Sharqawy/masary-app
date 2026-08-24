@@ -9,9 +9,8 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { I18nManager, useColorScheme, useWindowDimensions } from 'react-native';
+import { I18nManager, useColorScheme } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import * as Font from 'expo-font';
 import { useFonts } from 'expo-font';
 import { Cairo_400Regular, Cairo_600SemiBold, Cairo_700Bold } from '@expo-google-fonts/cairo';
 import { usePrefs } from '@/lib/i18n';
@@ -30,7 +29,6 @@ export default function RootLayout() {
   const language = usePrefs((s) => s.language);
   const themePref = usePrefs((s) => s.theme);
   const colorScheme = useColorScheme();
-  const { width } = useWindowDimensions();
 
   // RTL stays structural: set once language becomes Arabic (and stay on
   // reload), mirroring layout per ui-ux-plan "Arabic-first, RTL by default".

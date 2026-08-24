@@ -1,0 +1,7 @@
+/**
+ * Tailwind entry stylesheet (NativeWind v4).
+ * Imported once in app/_layout.tsx via '../global.css'.
+ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;

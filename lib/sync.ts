@@ -69,6 +69,18 @@ export async function syncNow(): Promise<SyncResult> {
   }
 }
 
+/** One-time guest → account merge (settings upgrade flow, ui-ux-plan §5-٦):
+ *  flag every never-pushed local row (guest rows keep user_id NULL) dirty=1,
+ *  then one syncNow uploads them. Idempotent — pushed rows end up with
+ *  user_id set + dirty=0, so repeat calls push nothing new and upserts are
+ *  conflict-safe on id. No-op for guests. */
+export async function mergeLocalToCloud(): Promise<SyncResult> {
+  if (useAuth.getState().mode !== 'signed_in') return { pushed: 0, pulled: 0 };
+  const db = await getDb();
+  await db.runAsync('UPDATE transactions SET dirty = 1 WHERE user_id IS NULL');
+  return syncNow();
+}
+
 /** Push every dirty row in batches of 50, marking synced_at + dirty=0 per batch. */
 async function pushDirty(db: SQLiteDatabase, uid: string): Promise<number> {
   const rows = await db.getAllAsync<Record<string, unknown>>('SELECT * FROM transactions WHERE dirty = 1');

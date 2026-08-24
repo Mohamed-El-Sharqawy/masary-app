@@ -71,3 +71,15 @@
 - tests/aggregates.test.ts: 15 cases — Cairo bounds, FX weighting, KWD factor,
   day rollover UTC+3, SQL parameterization asserts.
 - Verified: tsc 0, lint 0, structure OK (45 files), 72/72 tests.
+
+## M5 — Onboarding, settings, backup (2026-08-24)
+- app/onboarding.tsx: 3-page animated pager (hero/voice/privacy), numerals preview,
+  page dots, skip, i18n'd MSA copy; gated from app/_layout.tsx via onboarded pref.
+- components/onboarding/AuthCard.tsx + app/auth.tsx: email sign-in/up modal,
+  Google/Apple OAuth entry, guest path (الدخول كضيف) with privacy explainer.
+- app/(tabs)/settings.tsx full build: account (guest upgrade → one-time local→cloud
+  merge via lib/sync.ts mergeLocalToCloud), language, numerals, default currency,
+  backup export (share sheet) + import (expo-document-picker + confirm), sync row
+  with pending count (hidden for guests), about section. Row/Section components.
+- lib/i18n.ts extended (append-only) with all M5 strings MSA+en; defaultCurrency pref.
+- Verified: tsc 0, lint 0, structure OK (52 files), 72/72 tests.

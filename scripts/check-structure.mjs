@@ -71,8 +71,8 @@ if (existsSync(compDir)) {
   for (const f of walk(compDir).filter((p) => /\.(ts|tsx)$/.test(p))) {
     const rel = relative(compDir, f);
     const top = rel.split(/[\\/]/)[0];
-    if (!['ui', 'chat', 'dashboard', 'settings'].includes(top)) {
-      errors.push(`component outside feature dir: ${relative(ROOT, f)} (allowed: ui/chat/dashboard/settings)`);
+    if (!['ui', 'chat', 'dashboard', 'settings', 'onboarding'].includes(top)) {
+      errors.push(`component outside feature dir: ${relative(ROOT, f)} (allowed: ui/chat/dashboard/settings/onboarding)`);
     }
   }
 }

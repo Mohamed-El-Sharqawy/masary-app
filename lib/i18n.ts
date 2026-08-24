@@ -1,12 +1,15 @@
 /**
- * Minimal Arabic-first i18n store (Zustand + AsyncStorage persistence).
- * UI copy: Modern Standard Arabic (فصيح) default, English toggle (docs/ui-ux-plan §1).
- * RTL is derived from language. Used by: every screen and component that renders copy.
+ * Minimal Arabic-first i18n string tables + translate helper.
+ * UI copy: Modern Standard Arabic (فصيح) default, English toggle
+ * (docs/ui-ux-plan §1). RTL is derived from language. The prefs store
+ * moved to lib/prefs.ts and is re-exported here so existing
+ * `@/lib/i18n` imports keep working.
+ * Used by: every screen and component that renders copy.
  */
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AppLanguage, NumeralSystem, ThemePref } from '@/types';
+import type { AppLanguage } from '@/types';
+import { usePrefs } from '@/lib/prefs';
+
+export { usePrefs };
 
 /** Full UI string table — ar (MSA) primary, en secondary. */
 export const STRINGS: Record<AppLanguage, Record<string, string>> = {
@@ -70,14 +73,39 @@ export const STRINGS: Record<AppLanguage, Record<string, string>> = {
     theme_light: 'فاتح',
     theme_dark: 'غامق',
     // Onboarding
+    onboarding_tagline: 'سجّل مصروفاتك بالحديث أو الكتابة، ودع مساري ينظّمها لك',
+    onboarding_skip: 'تخطي',
     onboarding_value_title: 'مصروفاتك في رسالة واحدة',
     onboarding_value_body: 'اكتب أو انطق ما صرفته، ومساري يحوّله إلى سجل منظم تلقائيًا',
     onboarding_voice_title: 'تسجيل بالصوت',
     onboarding_voice_body: 'اضغط زر الميكروفون وتحدث بشكل طبيعي — عربي، إنجليزي، أو مختلط',
+    onboarding_bullet_voice: 'تحدث بشكل طبيعي — عربي أو إنجليزي أو مختلط',
+    onboarding_bullet_extract: 'استخراج تلقائي للمبلغ والفئة والتاريخ والشخص',
+    onboarding_bullet_confirm: 'تأكيد بلمسة واحدة ولوحة تحكم واضحة',
     onboarding_privacy_title: 'خصوصيتك أولًا',
     onboarding_privacy_body: 'يمكنك استخدام التطبيق كضيف دون حساب — تبقى بياناتك على جهازك فقط',
+    onboarding_privacy_local: 'بياناتك على جهازك',
+    onboarding_privacy_sync: 'والمزامنة اختيارية عند إنشاء حساب',
+    onboarding_numerals_label: 'شكل الأرقام',
+    onboarding_numerals_western: 'غربية',
+    onboarding_numerals_eastern: 'شرقية',
     onboarding_next: 'التالي',
-    onboarding_start: 'ابدأ الآن',
+    onboarding_start: 'ابدأ',
+    // Auth
+    auth_signin_title: 'تسجيل الدخول',
+    auth_email_label: 'البريد الإلكتروني',
+    auth_password_label: 'كلمة المرور',
+    auth_email_button: 'الدخول بالبريد الإلكتروني',
+    auth_google_button: 'المتابعة بحساب Google',
+    auth_apple_button: 'المتابعة بحساب Apple',
+    auth_switch_to_signup: 'ليس لديك حساب؟ إنشاء حساب',
+    auth_switch_to_signin: 'لديك حساب؟ تسجيل الدخول',
+    auth_error_credentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+    auth_error_email_taken: 'البريد الإلكتروني مستخدم بالفعل',
+    auth_error_weak_password: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل',
+    auth_error_invalid_email: 'صيغة البريد الإلكتروني غير صحيحة',
+    auth_check_email: 'تحقق من بريدك الإلكتروني لإكمال إنشاء الحساب',
+    auth_close: 'إغلاق',
     // Misc
     retry: 'إعادة المحاولة',
     error_generic: 'حدث خطأ — حاول مرة أخرى',
@@ -135,47 +163,42 @@ export const STRINGS: Record<AppLanguage, Record<string, string>> = {
     theme_system: 'System',
     theme_light: 'Light',
     theme_dark: 'Dark',
+    onboarding_tagline: 'Log expenses by voice or text, and let Masary organize them for you',
+    onboarding_skip: 'Skip',
     onboarding_value_title: 'Your expenses in one message',
     onboarding_value_body: 'Type or say what you spent, and Masary turns it into an organized record',
     onboarding_voice_title: 'Voice logging',
     onboarding_voice_body: 'Press the mic button and speak naturally — Arabic, English, or mixed',
+    onboarding_bullet_voice: 'Speak naturally — Arabic, English, or mixed',
+    onboarding_bullet_extract: 'Automatic amount, category, date, and person extraction',
+    onboarding_bullet_confirm: 'One-tap confirm and a clear dashboard',
     onboarding_privacy_title: 'Privacy first',
     onboarding_privacy_body: 'Use the app as a guest with no account — your data stays on your device',
+    onboarding_privacy_local: 'Your data stays on your device',
+    onboarding_privacy_sync: 'Syncing is optional with an account',
+    onboarding_numerals_label: 'Numeral style',
+    onboarding_numerals_western: 'Western',
+    onboarding_numerals_eastern: 'Eastern',
     onboarding_next: 'Next',
-    onboarding_start: 'Get started',
+    onboarding_start: 'Start',
+    auth_signin_title: 'Sign in',
+    auth_email_label: 'Email',
+    auth_password_label: 'Password',
+    auth_email_button: 'Continue with email',
+    auth_google_button: 'Continue with Google',
+    auth_apple_button: 'Continue with Apple',
+    auth_switch_to_signup: 'No account yet? Create one',
+    auth_switch_to_signin: 'Already have an account? Sign in',
+    auth_error_credentials: 'Incorrect email or password',
+    auth_error_email_taken: 'This email is already registered',
+    auth_error_weak_password: 'Password must be at least 6 characters',
+    auth_error_invalid_email: 'Invalid email address',
+    auth_check_email: 'Check your email to finish creating your account',
+    auth_close: 'Close',
     retry: 'Retry',
     error_generic: 'Something went wrong — try again',
   },
 };
-
-/** Local UI preferences persisted on device. */
-interface PrefsState {
-  language: AppLanguage;
-  numerals: NumeralSystem;
-  theme: ThemePref;
-  onboarded: boolean;
-  setLanguage: (l: AppLanguage) => void;
-  setNumerals: (n: NumeralSystem) => void;
-  setTheme: (t: ThemePref) => void;
-  setOnboarded: (v: boolean) => void;
-}
-
-/** Zustand store for language / numerals / theme / onboarding. */
-export const usePrefs = create<PrefsState>()(
-  persist(
-    (set) => ({
-      language: 'ar',
-      numerals: 'western',
-      theme: 'system',
-      onboarded: false,
-      setLanguage: (language) => set({ language }),
-      setNumerals: (numerals) => set({ numerals }),
-      setTheme: (theme) => set({ theme }),
-      setOnboarded: (onboarded) => set({ onboarded }),
-    }),
-    { name: 'masary-prefs', storage: createJSONStorage(() => AsyncStorage) },
-  ),
-);
 
 /** Translate helper — hook-free read for the current language table. */
 export function t(key: string, lang?: AppLanguage): string {

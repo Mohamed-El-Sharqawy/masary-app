@@ -19,13 +19,13 @@ import type { NetInfoState } from '@react-native-community/netinfo';
 import { captureAudio, captureText } from '@/services/api';
 import { appendChatMessage, insertTransaction } from '@/services/mutations';
 import { ExtractionResultSchema } from '@/lib/ai/schema';
-import { normalizeExtraction } from '@/lib/ai/extract';
+import { normalizeExtraction, unwrapExtraction } from '@/lib/ai/extract';
 import type { ZodExtractionResult } from '@/lib/ai/schema';
 import { markDone, markFailed, takeBatch } from '@/lib/voice/queue';
 import type { VoiceCapture } from '@/lib/voice/queue';
 import { getSupabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-store';
-import { usePrefs } from '@/lib/i18n';
+import { t, usePrefs } from '@/lib/i18n';
 import { amountToMinor } from '@/utils/currency';
 import { formatMinor } from '@/utils/numerals';
 import { APP, CATEGORY_AR, CURRENCY_AR } from '@/constants';
@@ -57,18 +57,6 @@ async function authToken(): Promise<string | null> {
   } catch {
     return null;
   }
-}
-
-/**
- * The /capture envelope is { transcript, extracted, user_id }; accept a bare
- * extraction result too so both response shapes validate.
- */
-function unwrapExtraction(raw: unknown): unknown {
-  if (raw && typeof raw === 'object' && 'extracted' in raw) {
-    const env = raw as { extracted?: unknown };
-    if (env.extracted != null) return env.extracted;
-  }
-  return raw;
 }
 
 /**
@@ -127,9 +115,6 @@ function summaryLine(tx: Transaction, numerals: 'western' | 'eastern'): string {
   }`;
 }
 
-/** Fallback assistant line when a take succeeds but yields nothing to store. */
-const NO_EXPENSE_FOUND = 'لم أتعرف على مصروف في هذا التسجيل.';
-
 /**
  * Process one queued capture end-to-end: upload → validate (repair ×1) →
  * insert transactions → append the user + assistant chat messages.
@@ -176,7 +161,7 @@ async function processOne(item: VoiceCapture, token: string | null): Promise<voi
   } else if (extraction.unparsed_text) {
     content = extraction.unparsed_text;
   } else {
-    content = NO_EXPENSE_FOUND;
+    content = t('no_expense_found', usePrefs.getState().language);
   }
   await appendChatMessage({
     role: 'assistant',

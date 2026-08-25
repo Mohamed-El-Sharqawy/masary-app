@@ -12,6 +12,7 @@ import { useAppendChatMessage, useInsertTransaction } from '@/services/mutations
 import { useChatMessages } from '@/services/queries';
 import { ExtractionResultSchema } from '@/lib/ai/schema';
 import type { ZodExtractionResult } from '@/lib/ai/schema';
+import { unwrapExtraction } from '@/lib/ai/extract';
 import { getDb } from '@/lib/db';
 import { amountToMinor } from '@/utils/currency';
 import { formatMinor } from '@/utils/numerals';
@@ -32,7 +33,7 @@ async function captureAndParse(text: string): Promise<{
   repaired: boolean;
 }> {
   const first = await captureText(text, null);
-  const firstParse = ExtractionResultSchema.safeParse(first);
+  const firstParse = ExtractionResultSchema.safeParse(unwrapExtraction(first));
   if (firstParse.success) return { parsed: firstParse.data, repaired: false };
 
   const repairText =
@@ -41,7 +42,7 @@ async function captureAndParse(text: string): Promise<{
     `الخطأ: ${firstParse.error.message.slice(0, 300)}. ` +
     `أعد الإرسال بصيغة JSON صحيحة فقط.]`;
   const second = await captureText(repairText, null);
-  const secondParse = ExtractionResultSchema.safeParse(second);
+  const secondParse = ExtractionResultSchema.safeParse(unwrapExtraction(second));
   if (secondParse.success) return { parsed: secondParse.data, repaired: true };
   throw new Error('extraction_schema_failed');
 }

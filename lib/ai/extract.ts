@@ -3,7 +3,9 @@
  * Calls the Edge Function via services/api.ts, validates the JSON against
  * the Zod contract, retries ONCE with a repair prompt on validation failure,
  * then runs the deterministic normalizer (relative dates, Eastern numerals)
- * as defense in depth. Used by: services/mutations.ts (chat pipeline), tests.
+ * as defense in depth. Also exports unwrapExtraction, the shared /capture
+ * envelope unwrap used by the text paths here and in lib/voice/process.ts.
+ * Used by: services/mutations.ts (chat pipeline), hooks/useChat.ts, tests.
  */
 import { ExtractionResultSchema } from '@/lib/ai/schema';
 import type { ZodExtractionResult } from '@/lib/ai/schema';
@@ -47,6 +49,18 @@ export function normalizeExtraction(result: ZodExtractionResult): ZodExtractionR
 }
 
 /**
+ * The /capture envelope is { transcript, extracted, user_id }; accept a bare
+ * extraction result too so both response shapes validate.
+ */
+export function unwrapExtraction(raw: unknown): unknown {
+  if (raw && typeof raw === 'object' && 'extracted' in raw) {
+    const env = raw as { extracted?: unknown };
+    if (env.extracted != null) return env.extracted;
+  }
+  return raw;
+}
+
+/**
  * Send user text to /capture and get a validated, normalized extraction.
  * One repair retry on schema failure; a second failure throws
  * ExtractionSchemaError so the caller can mark the capture needs_review.
@@ -55,13 +69,17 @@ export async function extractExpenses(
   text: string,
   authToken: string | null,
 ): Promise<ZodExtractionResult> {
-  let parsed = ExtractionResultSchema.safeParse(await captureText(text, authToken));
+  let parsed = ExtractionResultSchema.safeParse(
+    unwrapExtraction(await captureText(text, authToken)),
+  );
 
   if (!parsed.success) {
     const repairText =
       `${text} Previous response failed schema validation: ` +
       `${parsed.error.message}. Return ONLY corrected JSON.`;
-    parsed = ExtractionResultSchema.safeParse(await captureText(repairText, authToken));
+    parsed = ExtractionResultSchema.safeParse(
+      unwrapExtraction(await captureText(repairText, authToken)),
+    );
   }
 
   if (!parsed.success) throw new ExtractionSchemaError(parsed.error.message);

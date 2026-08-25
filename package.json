@@ -23,6 +23,7 @@
     "expo-splash-screen": "~57.0.8",
     "expo-sqlite": "~57.0.1",
     "expo-status-bar": "~57.0.1",
+    "expo-updates": "~57.0.17",
     "nativewind": "^4.2.6",
     "react": "19.2.3",
     "react-dom": "^19.2.3",
@@ -40,6 +41,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/react": "~19.2.2",
+    "babel-preset-expo": "~57.0.0",
     "eslint": "^10.9.1",
     "prettier": "^3.9.6",
     "typescript": "~6.0.3",

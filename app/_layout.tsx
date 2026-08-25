@@ -9,7 +9,7 @@
  */
 import '@/global.css';
 import '@/lib/i18n'; // ensure the prefs store hydrates before first paint
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';

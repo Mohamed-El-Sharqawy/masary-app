@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useVoice } from '@/hooks/useVoice';
+import { t, usePrefs } from '@/lib/i18n';
 
 /** Upward drag (px) that arms release-to-cancel. */
 const CANCEL_DRAG_PX = 40;
@@ -24,6 +25,7 @@ interface VoiceButtonProps {
 /** Hold-to-talk microphone button with drag-up-to-cancel. */
 export function VoiceButton({ size = 'md' }: VoiceButtonProps) {
   const large = size === 'lg';
+  const lang = usePrefs((s) => s.language);
   const { recording, durationMs, busy, start, stop, cancel, send } = useVoice({
     onAutoStop: (take) => {
       void send(take);
@@ -156,11 +158,13 @@ export function VoiceButton({ size = 'md' }: VoiceButtonProps) {
                 cancelArmed ? 'text-destructive' : 'text-inksoft'
               }`}
             >
-              اسحب للأعلى للإلغاء
+              {t('voice_cancel_hint', lang)}
             </Text>
           </View>
           {large ? (
-            <Text className="font-cairo text-xs text-inksoft">{seconds} ث</Text>
+            <Text className="font-cairo text-xs text-inksoft">
+              {t('voice_seconds', lang).replace('{s}', String(seconds))}
+            </Text>
           ) : null}
         </View>
       ) : null}

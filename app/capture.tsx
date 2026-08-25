@@ -11,7 +11,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { VoiceButton } from '@/components/chat/VoiceButton';
-import { usePrefs } from '@/lib/i18n';
+import { t, usePrefs } from '@/lib/i18n';
 
 /** Quick-capture voice screen. */
 export default function CaptureScreen() {
@@ -22,10 +22,9 @@ export default function CaptureScreen() {
     <SafeAreaView className="flex-1 bg-cream" edges={['top']}>
       <View className="flex-1 items-center justify-center gap-6 px-6">
         <View className="items-center gap-2">
-          <Text className="font-cairo text-2xl font-bold text-ink">تسجيل سريع</Text>
+          <Text className="font-cairo text-2xl font-bold text-ink">{t('capture_title', lang)}</Text>
           <Text className="text-center font-cairo text-sm leading-6 text-inksoft">
-            اضغط المطوّل على الميكروفون وتحدّث بالمصروف{'\n'}
-            يسجَّل الآن ويُحوَّل نصًا عند عودة الاتصال
+            {t('capture_instructions', lang)}
           </Text>
         </View>
         <VoiceButton size="lg" />
@@ -34,9 +33,7 @@ export default function CaptureScreen() {
           onPress={() => router.replace('/(tabs)/')}
           className="rounded-full border border-borderx bg-surface px-5 py-2"
         >
-          <Text className="font-cairo text-sm text-primary">
-            {lang === 'ar' ? 'اذهب إلى المحادثة' : 'Go to chat'}
-          </Text>
+          <Text className="font-cairo text-sm text-primary">{t('go_to_chat', lang)}</Text>
         </Pressable>
       </View>
     </SafeAreaView>

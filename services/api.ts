@@ -29,6 +29,8 @@ export async function getDeviceId(): Promise<string> {
 
 /**
  * Send text (or transcript) to the Edge Function for AI extraction.
+ * Every call sends x-device-id (guest rate-limit key; fallback when a
+ * signed-in token is rejected); signed-in users also attach their JWT.
  * @param text user message in any language mix
  * @param authToken Supabase access token when signed in (null for guests)
  * @returns extraction JSON per the §4 contract
@@ -37,9 +39,11 @@ export async function captureText(
   text: string,
   authToken: string | null,
 ): Promise<unknown> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'x-device-id': await getDeviceId(),
+  };
   if (authToken) headers.Authorization = `Bearer ${authToken}`;
-  else headers['x-device-id'] = await getDeviceId();
 
   const res = await fetch(APP_CONFIG.edgeUrl, {
     method: 'POST',
@@ -68,8 +72,9 @@ function audioPart(uri: string): { name: string; type: string } {
 /**
  * Upload a recorded take (16 kHz mono WAV/m4a) to the Edge Function:
  * Groq STT → transcript → extraction. Multipart 'audio' field per the §4
- * /capture contract. Guests use the device-id path (the designed guest AI
- * path — the only cloud call guests make); signed-in users attach their JWT.
+ * /capture contract. Every call sends x-device-id (the designed guest AI
+ * path — the only cloud call guests make — and the fallback when a
+ * signed-in token is rejected); signed-in users also attach their JWT.
  * @param uri local file uri of the recording
  * @param authToken Supabase access token when signed in (null for guests)
  * @returns the /capture JSON envelope (transcript + extraction)
@@ -78,9 +83,8 @@ export async function captureAudio(
   uri: string,
   authToken: string | null,
 ): Promise<unknown> {
-  const headers: Record<string, string> = {};
+  const headers: Record<string, string> = { 'x-device-id': await getDeviceId() };
   if (authToken) headers.Authorization = `Bearer ${authToken}`;
-  else headers['x-device-id'] = await getDeviceId();
 
   const { name, type } = audioPart(uri);
   const form = new FormData();

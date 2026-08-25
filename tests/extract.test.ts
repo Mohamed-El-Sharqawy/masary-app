@@ -1,8 +1,9 @@
 /**
  * Tests for the extraction client wrapper (lib/ai/extract.ts).
  * Mocks the expo modules + global fetch (no network): covers happy path,
- * single repair retry, double failure → ExtractionSchemaError, and the
- * deterministic normalizer passes (relative dates, Eastern numerals).
+ * bare vs envelope-wrapped response shapes, single repair retry, double
+ * failure → ExtractionSchemaError, auth headers, and the deterministic
+ * normalizer passes (relative dates, Eastern numerals).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -77,6 +78,21 @@ describe('extractExpenses', () => {
     expect(sentBody(fetchMock, 1).text).toBe('كوكي بـ ٣٥');
   });
 
+  it('unwraps an envelope-wrapped response and succeeds on the first call', async () => {
+    const envelope = {
+      transcript: null,
+      extracted: okPayload({ spent_at: 'امبارح', notes: 'دفعت ٣٥٫٥٠ جنيه' }),
+      user_id: null,
+    };
+    const fetchMock = stubFetch(envelope);
+    const r = await extractExpenses('امبارح كوكي بـ ٣٥', null);
+    expect(r.expenses[0].amount).toBe(35);
+    expect(fetchMock).toHaveBeenCalledTimes(1); // valid on first parse — no repair
+    // normalizeExtraction still runs on the unwrapped result:
+    expect(r.expenses[0].spent_at).toBe('2026-08-23T12:00:00.000Z'); // FIXED_NOW − 1 day
+    expect(r.expenses[0].notes).toBe('دفعت 35.50 جنيه');
+  });
+
   it('repairs once when the first response fails validation', async () => {
     const fetchMock = stubFetch({ foo: 'bar' }, okPayload());
     const r = await extractExpenses('اتنان كوفي بـ ٧٠', 'token-123');
@@ -113,12 +129,12 @@ describe('extractExpenses', () => {
     expect(r.expenses[0].notes).toBe('دفعت 35.50 جنيه');
   });
 
-  it('sends Authorization for signed-in users and x-device-id for guests', async () => {
+  it('always sends x-device-id; Authorization additionally when signed in', async () => {
     const fetchMock = stubFetch(okPayload(), okPayload());
     await extractExpenses('كوفي', 'jwt-abc');
     await extractExpenses('كوفي', null);
     expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer jwt-abc');
-    expect(fetchMock.mock.calls[0][1].headers['x-device-id']).toBeUndefined();
+    expect(fetchMock.mock.calls[0][1].headers['x-device-id']).toBe('mock-device-uuid');
     expect(fetchMock.mock.calls[1][1].headers.Authorization).toBeUndefined();
     expect(fetchMock.mock.calls[1][1].headers['x-device-id']).toBe('mock-device-uuid');
   });
